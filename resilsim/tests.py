@@ -1,7 +1,7 @@
 from objects.Link import BS_UE_Link
-from src.objects.BaseStation import BaseStation
-from src.objects.UE import UserEquipment
-from src.util import distance
+from resilsim.objects.BaseStation import BaseStation
+from resilsim.objects.UE import UserEquipment
+from resilsim.util import distance
 
 import numpy as np
 

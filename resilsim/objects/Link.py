@@ -1,7 +1,7 @@
 import math
 
-import util
-from settings import CHANNEL_BANDWIDTHS, SIGNAL_NOISE
+import resilsim.util as util
+from resilsim.settings import CHANNEL_BANDWIDTHS, SIGNAL_NOISE
 
 
 class BS_BS_Link:

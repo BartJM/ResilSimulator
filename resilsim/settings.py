@@ -1,11 +1,15 @@
 import numpy as np
+from pathlib import Path
+import os
 
-DATA_PATH = "data/204.csv"
-CITY_PATH = "data/city.csv"
+ROOT_DIR = Path(__file__).parent
+
+DATA_PATH = os.path.join(ROOT_DIR, "data", "204.csv")
+CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv")
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
-SAVE_CSV_PATH = "resultsv2/malicious_attack2.csv"
+SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "normal.csv")
 
 AMOUNT_THREADS = 22
 
@@ -45,7 +49,7 @@ POWER_OUTAGE = False
 RADIUS_PER_SEVERITY = 1000
 
 # malicious attacks on a certain region, for instance a DDoS
-MALICIOUS_ATTACK = True
+MALICIOUS_ATTACK = False
 PERCENTAGE_BASE_STATIONS = 0.5
 FUNCTIONALITY_DECREASED_PER_SEVERITY = 0.1
 
@@ -56,7 +60,7 @@ ENV_SIGNAL_DEDUC_PER_SEVERITY = 0.05
 
 
 # increasing requested data
-INCREASING_REQUESTED_DATA = True
+INCREASING_REQUESTED_DATA = False
 OFFSET = 10
 DATA_PER_SEV = 10
 WINDOW_SIZE = 10

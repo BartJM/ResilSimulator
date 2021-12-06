@@ -1,6 +1,5 @@
-from settings import OPEN_CHANNELS, CHANNEL_BANDWIDTHS, BASE_POWER
-from src.objects.Link import BS_BS_Link, BS_UE_Link
-import util
+from resilsim.settings import OPEN_CHANNELS, CHANNEL_BANDWIDTHS, BASE_POWER
+from resilsim.objects.Link import BS_BS_Link, BS_UE_Link
 import math
 
 class BaseStation:

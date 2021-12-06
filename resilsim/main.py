@@ -1,9 +1,12 @@
-from objects.Link import BS_UE_Link
-from objects.Metrics import Metrics
-from src.objects.UE import UserEquipment
-from src.settings import *
+from resilsim.objects.Link import BS_UE_Link
+from resilsim.objects.Metrics import Metrics
+from resilsim.objects.UE import UserEquipment
+from resilsim.settings import *
 import numpy as np
-import util
+import resilsim.util as util
+import csv
+import resilsim.objects.BaseStation as bs
+from resilsim.objects.City import City
 
 from multiprocessing import Pool
 
@@ -12,11 +15,12 @@ def main():
     if SAVE_IN_CSV:
         util.create_new_file()
 
-    all_cities = util.load_cities()
+    all_cities = load_cities()
     city_results = dict()
+
     for city in all_cities:
         print("Starting simulation for city:{}".format(city.name))
-        base_stations = util.load(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
+        base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
         if ENVIRONMENTAL_RISK:
             for bs in base_stations:
                 bs.range_bs = bs.range_bs * PERCENTAGE_RANGE_BS
@@ -82,7 +86,7 @@ def pool_func(u, base_stations, city):
 
 def setup(city):
     print("Loading base stations")
-    base_stations = util.load(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
+    base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
     print("Creating links between base stations")
     links = connected_base_stations(base_stations)
     print("Creating UE")
@@ -227,6 +231,34 @@ def reset_all(base_stations, UE):
     for user in UE:
         user.reset()
 
+
+def load_cities():
+    all_cities = list()
+    with open(CITY_PATH, newline='') as f:
+        filereader = csv.DictReader(f)
+        for row in filereader:
+            all_cities.append(City(row["name"], row["min_lat"], row["min_lon"], row["max_lat"], row["max_lon"], row["population_amount"]))
+
+    return all_cities
+
+def load_bs(min_lat, min_lon, max_lat, max_lon):
+    all_basestations = list()
+    all_basestations_dict = dict()
+
+    with open(DATA_PATH, newline='') as f:
+        filereader = csv.DictReader(f)
+        for row in filereader:
+            lon = float(row["lon"])
+            lat = float(row["lat"])
+            if min_lon <= lon <= max_lon and min_lat <= lat <= max_lat:
+                if row["area"] not in all_basestations_dict:
+                    new_basestation = bs.BaseStation(row["radio"], row["mcc"], row["net"], row["area"], row["cell"], row["unit"], lon, lat, row["range"], row["samples"], row["changeable"], row["created"], row["updated"], row["averageSignal"])
+                    all_basestations_dict[row["area"]] = new_basestation
+                    all_basestations.append(new_basestation)
+                else:
+                    # TODO: MAYBE COMBINE COORDINATES
+                    pass
+    return all_basestations
 
 if __name__ == '__main__':
     main()

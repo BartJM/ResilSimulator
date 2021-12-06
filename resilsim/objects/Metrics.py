@@ -1,4 +1,4 @@
-import util
+import resilsim.util as util
 
 
 class Metrics:

@@ -1,4 +1,4 @@
-from objects.Link import BS_UE_Link
+from resilsim.objects.Link import BS_UE_Link
 
 class UserEquipment:
     def __init__(self, id: int, lon: float, lat: float, capacity: int):

@@ -12,12 +12,6 @@ def load():
         for row in filereader:
             all_cities.append(str(row['name']))
 
-
-
-
-
-
-
     sub_city_results = dict()
 
     print("importing file")

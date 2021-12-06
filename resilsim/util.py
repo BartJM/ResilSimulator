@@ -1,21 +1,10 @@
 import math
 from math import radians, sin, cos, atan2, sqrt, log10
 import csv
-import objects.BaseStation as bs
-from objects.City import City
-from settings import *
+
+from resilsim.settings import *
 import plotly.graph_objects as go
 import scipy.stats as st
-
-
-def load_cities():
-    all_cities = list()
-    with open(CITY_PATH, newline='') as f:
-        filereader = csv.DictReader(f)
-        for row in filereader:
-            all_cities.append(City(row["name"], row["min_lat"], row["min_lon"], row["max_lat"], row["max_lon"], row["population_amount"]))
-
-    return all_cities
 
 
 def distance(lat1, lon1, lat2, lon2):
@@ -32,26 +21,6 @@ def distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     distance = r * c
     return distance * 1000
-
-
-def load(min_lat, min_lon, max_lat, max_lon):
-    all_basestations = list()
-    all_basestations_dict = dict()
-
-    with open(DATA_PATH, newline='') as f:
-        filereader = csv.DictReader(f)
-        for row in filereader:
-            lon = float(row["lon"])
-            lat = float(row["lat"])
-            if min_lon <= lon <= max_lon and min_lat <= lat <= max_lat:
-                if row["area"] not in all_basestations_dict:
-                    new_basestation = bs.BaseStation(row["radio"], row["mcc"], row["net"], row["area"], row["cell"], row["unit"], lon, lat, row["range"], row["samples"], row["changeable"], row["created"], row["updated"], row["averageSignal"])
-                    all_basestations_dict[row["area"]] = new_basestation
-                    all_basestations.append(new_basestation)
-                else:
-                    # TODO: MAYBE COMBINE COORDINATES
-                    pass
-    return all_basestations
 
 
 def pathloss(distance):
@@ -71,7 +40,8 @@ def received_service(UE):
 
     for user in UE:
         if user.link is not None:
-            percentages.append(1 if user.link.shannon_capacity / user.requested_capacity > 1 else user.link.shannon_capacity / user.requested_capacity)
+            percentages.append(
+                1 if user.link.shannon_capacity / user.requested_capacity > 1 else user.link.shannon_capacity / user.requested_capacity)
         else:
             percentages.append(0)
 
@@ -194,9 +164,10 @@ def get_x_values():
     if LARGE_DISASTER:
         return [RADIUS_PER_SEVERITY * r for r in range(SEVERITY_ROUNDS)], "Radius disaster (meters)"
     elif MALICIOUS_ATTACK:
-        return [(FUNCTIONALITY_DECREASED_PER_SEVERITY * s) for s in range(SEVERITY_ROUNDS)], "Functionality decreased of BS"
+        return [(FUNCTIONALITY_DECREASED_PER_SEVERITY * s) for s in
+                range(SEVERITY_ROUNDS)], "Functionality decreased of BS"
     elif ENVIRONMENTAL_RISK:
-        return [s* ENV_SIGNAL_DEDUC_PER_SEVERITY for s in range(SEVERITY_ROUNDS)], "Signal strength reduced (%)"
+        return [s * ENV_SIGNAL_DEDUC_PER_SEVERITY for s in range(SEVERITY_ROUNDS)], "Signal strength reduced (%)"
     elif INCREASING_REQUESTED_DATA:
         return [s for s in range(SEVERITY_ROUNDS)], "Severity level of increasing data"
 
@@ -204,7 +175,7 @@ def get_x_values():
 def create_plot(city_results):
     x_values, unit = get_x_values()
 
-    for z in [0,1]:
+    for z in [0, 1]:
         fig = go.Figure()
         for city in city_results:
             results = [m.get_metrics() for m in city_results[city]]
@@ -220,7 +191,8 @@ def create_plot(city_results):
                     visible=True
                 )
             ))
-        fig.update_layout(xaxis_title=unit, yaxis_title=getUnit(z), legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+        fig.update_layout(xaxis_title=unit, yaxis_title=getUnit(z),
+                          legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
         fig.show()
 
     pass
@@ -238,7 +210,8 @@ def cdf(data, confidence=0.95):
 
 def create_new_file():
     with open(SAVE_CSV_PATH, 'w', newline='') as f:
-        fieldnames = ['city', 'severity', 'isolated_users', 'received_service', 'received_service_half', 'avg_distance', 'isolated_systems', 'active_base_stations', 'avg_snr', 'connected_UE_BS']
+        fieldnames = ['city', 'severity', 'isolated_users', 'received_service', 'received_service_half', 'avg_distance',
+                      'isolated_systems', 'active_base_stations', 'avg_snr', 'connected_UE_BS']
         csv_writer = csv.writer(f)
         csv_writer.writerow(fieldnames)
 

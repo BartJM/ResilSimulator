@@ -1,4 +1,4 @@
-from settings import ACTIVITY
+from resilsim.settings import ACTIVITY
 
 
 class City:
