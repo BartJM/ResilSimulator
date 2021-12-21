@@ -1,22 +1,15 @@
 from resilsim.settings import OPEN_CHANNELS, CHANNEL_BANDWIDTHS, BASE_POWER
-from resilsim.objects.Link import BS_BS_Link, BS_UE_Link
+import resilsim.objects.Link as Link
 import math
 import random
-import enum
-
-
-@enum.unique
-class BaseStationRadioType(enum.Enum):
-    NR = enum.auto()
-    LTE = enum.auto()
-    mmWave = enum.auto()
 
 
 class BaseStation:
-    def __init__(self, radio: BaseStationRadioType, lon, lat):
+    def __init__(self, radio, lon, lat, height):
         self.radio = radio
         self.lon = float(lon)
         self.lat = float(lat)
+        self.height = height
 
         self.connected_UE_links = list()
         self.connected_UE = list()
@@ -38,7 +31,7 @@ class BaseStation:
         self.functional = new_functional
         self.create_new_channels()
 
-    def add_link(self, link: BS_BS_Link):
+    def add_link(self, link: Link.BS_BS_Link):
         self.connected_BS.append(link)
 
     def add_channel(self, frequency, power):
@@ -56,12 +49,12 @@ class BaseStation:
         self.channels.append(channel)
 
     def __add__(self, other):
-        new_link = BS_BS_Link(self, other)
+        new_link = Link.BS_BS_Link(self, other)
         self.connected_BS.append(new_link)
         other.add_link(new_link)
         return new_link
 
-    def add_ue(self, link: BS_UE_Link):
+    def add_ue(self, link: Link.BS_UE_Link):
         self.connected_UE_links.append(link)
         self.connected_UE.append(link.ue)
 

@@ -6,6 +6,8 @@ import resilsim.settings as settings
 import plotly.graph_objects as go
 import scipy.stats as st
 
+import enum
+
 
 def distance(lat1, lon1, lat2, lon2):
     r = 6378.137
@@ -204,3 +206,10 @@ def save_data(city, metrics):
             metric = metrics[i].csv_export()
             for m in metric:
                 csv_writer.writerow([city.name, i] + m)
+
+
+@enum.unique
+class BaseStationRadioType(enum.Enum):
+    NR = enum.auto()
+    LTE = enum.auto()
+    mmWave = enum.auto()

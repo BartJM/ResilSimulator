@@ -1,4 +1,4 @@
-from resilsim.objects.Link import BS_UE_Link
+import resilsim.objects.Link as Link
 from resilsim.objects.Metrics import Metrics
 from resilsim.objects.UE import UserEquipment
 from resilsim.settings import *
@@ -22,6 +22,7 @@ def main():
     for city in all_cities:
         print("Starting simulation for city:{}".format(city.name))
         base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
+        print(base_stations[0])
         exit(0)
         if ENVIRONMENTAL_RISK:
             for bs in base_stations:
@@ -153,9 +154,9 @@ def connect_ue_bs(ue, base_stations, severity=0):
         BS_in_area = sorted(BS_in_area, key=lambda x: x[1])
         for bs, dist in BS_in_area:
             if ENVIRONMENTAL_RISK:
-                new_link = BS_UE_Link(user, bs, dist, signal_deduction=1 - ENV_SIGNAL_DEDUC_PER_SEVERITY * severity)
+                new_link = Link.BS_UE_Link(user, bs, dist, signal_deduction=1 - ENV_SIGNAL_DEDUC_PER_SEVERITY * severity)
             else:
-                new_link = BS_UE_Link(user, bs, dist)
+                new_link = Link.BS_UE_Link(user, bs, dist)
 
             if new_link.bandwidthneeded is None:
                 continue
@@ -242,9 +243,19 @@ def load_bs(min_lat, min_lon, max_lat, max_lon):
         bss = json.load(f)
         # Loop over base-stations
         for bs in bss:
-            if min_lon <= bs.get('X') <= max_lon and min_lat <= bs.get('Y') <= max_lon:
-                pass
-
+            bs_lon = float(bs.get('X'))
+            bs_lat = float(bs.get('Y'))
+            if min_lon <= bs_lon <= max_lon and min_lat <= bs_lat <= max_lat:
+                if bs.get("HOOFDSOORT") == "LTE":
+                    radio = util.BaseStationRadioType.LTE
+                elif bs.get("HOOFDSOORT") == "5G NR":
+                    radio = util.BaseStationRadioType.NR
+                else:
+                    radio = None # TODO error when this is true
+                new_bs = bso.BaseStation(radio, bs_lon, bs_lat, bs.get('antennes')[0].get("Hoogte"))
+                for antenna in bs.get("antennes"):
+                    new_bs.add_channel(antenna.get("Frequentie"), antenna.get("Vermogen"))
+                all_basestations.append(new_bs)
     return all_basestations
 
 

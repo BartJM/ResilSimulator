@@ -1,0 +1,11 @@
+Assumptions used in sim:
+* a basestation is an antenna location for one generation (LTE,5gNR,mmWave)
+* Each basestation has channels with frequency and power (based on the dataset)
+* Channels with equal power are the same (for the same basestation)
+* basestation functionality affects the probability of channels being available
+* Use EPSG:28992 for coordinate system due to convenience of the data gathering (*sigh* difficulty of using WGS84)
+* Height is set per basestation(per radio type (5GNR/LTE)) and not per antenna as is sometimes the case.
+		The height of the first antenna is used
+
+TODO:
+Manipulate location from x,y (epsg:28992) to lon,lat (wgs84)
