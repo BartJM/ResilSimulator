@@ -1,67 +1,64 @@
-import math
-from math import radians, sin, cos, atan2, sqrt, log10
 import csv
+import math
+import numpy as np
 
-from resilsim.settings import *
+import resilsim.settings as settings
 import plotly.graph_objects as go
 import scipy.stats as st
 
 
 def distance(lat1, lon1, lat2, lon2):
     r = 6378.137
-    lat1 = radians(lat1)
-    lat2 = radians(lat2)
-    lon1 = radians(lon1)
-    lon2 = radians(lon2)
+    lat1 = math.radians(lat1)
+    lat2 = math.radians(lat2)
+    lon1 = math.radians(lon1)
+    lon2 = math.radians(lon2)
 
     diff_lat = lat2 - lat1
     diff_lon = lon2 - lon1
 
-    a = sin(diff_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(diff_lon / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = r * c
-    return distance * 1000
+    a = math.sin(diff_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(diff_lon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    d = r * c
+    return d * 1000
 
 
-def pathloss(distance):
-    return (MODEL_A + MODEL_B * log10(distance / 1000)) + sqrt(10) * np.random.random()
-
-
-def isolated_users(UE):
+def isolated_users(ue):
     counter = 0
-    for user in UE:
+    for user in ue:
         if user.link is None:
             counter += 1
-    return counter / len(UE)
+    return counter / len(ue)
 
 
-def received_service(UE):
+def received_service(ue):
     percentages = []
 
-    for user in UE:
+    for user in ue:
         if user.link is not None:
             percentages.append(
-                1 if user.link.shannon_capacity / user.requested_capacity > 1 else user.link.shannon_capacity / user.requested_capacity)
+                1 if user.link.shannon_capacity / user.requested_capacity > 1
+                else user.link.shannon_capacity / user.requested_capacity)
         else:
             percentages.append(0)
 
     return sum(percentages) / len(percentages) if len(percentages) != 0 else 0
 
 
-def received_service_half(UE):
+def received_service_half(ue):
     counter = 0
 
-    for user in UE:
+    for user in ue:
         if user.link is not None:
             if user.link.shannon_capacity / user.requested_capacity >= 0.5:
                 counter += 1
 
-    return counter / len(UE)
+    return counter / len(ue)
 
 
-def avg_distance(UE):
+def avg_distance(ue):
     distances = []
-    for user in UE:
+    for user in ue:
         if user.link:
             distances.append(user.link.distance)
 
@@ -84,21 +81,21 @@ def isolated_systems(base_stations):
     return systems
 
 
-def SNR_averages(UE):
+def snr_averages(ue):
     snrs = []
-    for user in UE:
+    for user in ue:
         if user.link:
-            snrs.append(user.SNR)
+            snrs.append(user.snr)
         else:
             snrs.append(0)
     return sum(snrs) / len(snrs) if len(snrs) > 0 else 0
 
 
-def active_base_stations(BS):
-    return sum([1 if bs.functional >= 0.2 else 0 for bs in BS])
+def active_base_stations(bs):
+    return sum([1 if bs.functional >= 0.2 else 0 for bs in bs])
 
 
-def connected_UE_BS(base_stations):
+def connected_ue_bs(base_stations):
     return sum([len(bs.connected_UE) for bs in base_stations]) / len(base_stations)
 
 
@@ -107,31 +104,14 @@ def to_pwr(db):
 
 
 def to_db(pwr):
-    return 10 * log10(pwr)
+    return 10 * math.log10(pwr)
 
 
-def shannon_capacity(bandwidth, TX, distance):
-    RX = TX - max(pathloss(distance) - G_TX - G_RX, MCL)
-    SNR = to_pwr(RX) / to_pwr(SIGNAL_NOISE)
-    capacity = bandwidth * math.log2(1 + SNR)
-    return capacity
-
-
-def second_param_capacity(TX, distance):
-    return math.log2(1 + SNR(TX, distance))
-
-
-def SNR(TX, distance):
-    RX = TX - max(pathloss(distance) - G_TX - G_RX, MCL)
-    SNR = to_pwr(RX) / to_pwr(SIGNAL_NOISE)
-    return SNR
-
-
-def avg(list):
+def avg(lst):
     length = 0
     total_sum = 0
 
-    for i in list:
+    for i in lst:
         if i is not None:
             length += 1
             total_sum += i
@@ -139,7 +119,7 @@ def avg(list):
     return total_sum / length if length > 0 else -1
 
 
-def getUnit(index):
+def get_unit(index):
     if index == 0:
         return "Isolated Users (%)"
     elif index == 1:
@@ -161,15 +141,16 @@ def getUnit(index):
 
 
 def get_x_values():
-    if LARGE_DISASTER:
-        return [RADIUS_PER_SEVERITY * r for r in range(SEVERITY_ROUNDS)], "Radius disaster (meters)"
-    elif MALICIOUS_ATTACK:
-        return [(FUNCTIONALITY_DECREASED_PER_SEVERITY * s) for s in
-                range(SEVERITY_ROUNDS)], "Functionality decreased of BS"
-    elif ENVIRONMENTAL_RISK:
-        return [s * ENV_SIGNAL_DEDUC_PER_SEVERITY for s in range(SEVERITY_ROUNDS)], "Signal strength reduced (%)"
-    elif INCREASING_REQUESTED_DATA:
-        return [s for s in range(SEVERITY_ROUNDS)], "Severity level of increasing data"
+    if settings.LARGE_DISASTER:
+        return [settings.RADIUS_PER_SEVERITY * r for r in range(settings.SEVERITY_ROUNDS)], "Radius disaster (meters)"
+    elif settings.MALICIOUS_ATTACK:
+        return [(settings.FUNCTIONALITY_DECREASED_PER_SEVERITY * s) for s in
+                range(settings.SEVERITY_ROUNDS)], "Functionality decreased of BS"
+    elif settings.ENVIRONMENTAL_RISK:
+        return [s * settings.ENV_SIGNAL_DEDUC_PER_SEVERITY for s in
+                range(settings.SEVERITY_ROUNDS)], "Signal strength reduced (%)"
+    elif settings.INCREASING_REQUESTED_DATA:
+        return [s for s in range(settings.SEVERITY_ROUNDS)], "Severity level of increasing data"
 
 
 def create_plot(city_results):
@@ -184,14 +165,14 @@ def create_plot(city_results):
                 x=x_values,
                 y=[r[z] for r in results if r[z] is not None],
                 mode='lines+markers',
-                name=city.abbreviation,
+                name=str(city),
                 error_y=dict(
                     type='data',
                     array=[e[z] for e in errors if e[z] is not None],
                     visible=True
                 )
             ))
-        fig.update_layout(xaxis_title=unit, yaxis_title=getUnit(z),
+        fig.update_layout(xaxis_title=unit, yaxis_title=get_unit(z),
                           legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
         fig.show()
 
@@ -209,7 +190,7 @@ def cdf(data, confidence=0.95):
 
 
 def create_new_file():
-    with open(SAVE_CSV_PATH, 'w', newline='') as f:
+    with open(settings.SAVE_CSV_PATH, 'w', newline='') as f:
         fieldnames = ['city', 'severity', 'isolated_users', 'received_service', 'received_service_half', 'avg_distance',
                       'isolated_systems', 'active_base_stations', 'avg_snr', 'connected_UE_BS']
         csv_writer = csv.writer(f)
@@ -217,9 +198,9 @@ def create_new_file():
 
 
 def save_data(city, metrics):
-    with open(SAVE_CSV_PATH, 'a', newline='') as f:
+    with open(settings.SAVE_CSV_PATH, 'a', newline='') as f:
         csv_writer = csv.writer(f)
-        for i in range(SEVERITY_ROUNDS):
+        for i in range(settings.SEVERITY_ROUNDS):
             metric = metrics[i].csv_export()
             for m in metric:
                 csv_writer.writerow([city.name, i] + m)

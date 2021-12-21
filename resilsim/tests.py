@@ -28,7 +28,7 @@ def channel_test():
     for i in range(AMOUNT_OF_DEVICES):
         dummyUE = UserEquipment(0,dummyLon,dummy_lat,all_cap[i])
         link = BS_UE_Link(dummyUE,BS,dist)
-        BS.add_UE(link)
+        BS.add_ue(link)
         dummyUE.set_base_station(link)
 
 

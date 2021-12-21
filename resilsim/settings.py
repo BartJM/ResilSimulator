@@ -1,11 +1,10 @@
-import numpy as np
 from pathlib import Path
 import os
 
 ROOT_DIR = Path(__file__).parent
 
-DATA_PATH = os.path.join(ROOT_DIR, "data", "204.csv")
-CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv")
+BS_PATH = os.path.join(ROOT_DIR, "data", "antennas.json")
+CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv") #TODO add city centre to the data
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
@@ -24,24 +23,22 @@ ROUNDS_PER_USER = 100
 ACTIVITY = 0.007
 
 #BASE STATION PROPERTIES
-BS_BS_RANGE = 4000
+BS_BS_RANGE = 4000 #TODO what is this used for
 
-MCL = 70 #in db
+MCL = 70 #in db -> seems high for minimum coupling loss???
 HEIGHT_ABOVE_BUILDINGS = 20
-CARRIER_FREQUENCY = 2000
-BASE_POWER = 43
-G_TX = 15
+CARRIER_FREQUENCY = 2000 # TODO remove?
+BASE_POWER = 43 #TODO remove
+G_TX = 15 #TODO adapt to be a base number that can be increased by beamforming
 G_RX = 0
 
-MODEL_A = -18 * np.log10(HEIGHT_ABOVE_BUILDINGS) + 21 * np.log10(CARRIER_FREQUENCY) + 80
-MODEL_B = 40 * (1 - 4 * (10 ** -3) * HEIGHT_ABOVE_BUILDINGS)
+OPEN_CHANNELS = 5 # TODO remove -> is replaced by knowledge about the number of channels in the new data set
+CHANNEL_BANDWIDTHS = [20,15,10,5,3,1.4] # TODO find the source/find source for this for 5G
 
-OPEN_CHANNELS = 5
-CHANNEL_BANDWIDTHS = [20,15,10,5,3,1.4]
-
-SIGNAL_NOISE = -100
+SIGNAL_NOISE = -100 # TODO why 100?
 
 # RISKS ENABLED
+#TODO move to more logical location?
 
 # if a large disaster occured, for instance a natural disaster or a depending failure
 LARGE_DISASTER = False

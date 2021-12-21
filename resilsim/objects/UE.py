@@ -1,5 +1,6 @@
 from resilsim.objects.Link import BS_UE_Link
 
+
 class UserEquipment:
     def __init__(self, id: int, lon: float, lat: float, capacity: int):
         self.id = id
@@ -14,7 +15,7 @@ class UserEquipment:
 
     @property
     def SNR(self):
-        return self.link.SNR
+        return self.link.snr
 
     def __str__(self):
         return "UE[{}], bandwith: {}, lon: {}, lat: {}".format(self.id, self.requested_capacity, self.lon, self.lat)
