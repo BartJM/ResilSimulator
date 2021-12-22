@@ -10,6 +10,7 @@ import enum
 
 
 def distance(lat1, lon1, lat2, lon2):
+    # Based on WSG84?, returns dist in meter?
     r = 6378.137
     lat1 = math.radians(lat1)
     lat2 = math.radians(lat2)
@@ -24,6 +25,34 @@ def distance(lat1, lon1, lat2, lon2):
     d = r * c
     return d * 1000
 
+def distance_2d(x1, y1, x2, y2):
+    """
+    Calculates distance in meters assuming EPSG:28992 coordinate system
+    :param x1: x of first point
+    :param y1: y of first point
+    :param x2: x of second point
+    :param y2: y of second point
+    :return: distance in metres
+    """
+    dist_x = abs(x1-x2)
+    dist_y = abs(y1-y2)
+
+    return math.sqrt(dist_x**2+dist_y**2)
+
+def distance_3d(x1, y1, h1, x2, y2, h2):
+    """
+    Calculates distance in meters assuming EPSG:28992 coordinate system
+    :param x1: x of first point
+    :param y1: y of first point
+    :param h1: height of first point
+    :param x2: x of second point
+    :param y2: y of second point
+    :param h2: height of second point
+    :return: distance in metres
+    """
+    d_2d = distance_2d(x1, y1, x2, y2)
+    dist_h = abs(h1-h2)
+    return math.sqrt(d_2d**2+dist_h**2)
 
 def isolated_users(ue):
     counter = 0
@@ -210,6 +239,24 @@ def save_data(city, metrics):
 
 @enum.unique
 class BaseStationRadioType(enum.Enum):
+    """
+    Radio type for the basestation
+    NR: 5G NR
+    LTE: 4G LTE
+    mmWave: 5G mmWave (6GHz+)
+    """
     NR = enum.auto()
     LTE = enum.auto()
     mmWave = enum.auto()
+
+@enum.unique
+class AreaType(enum.Enum):
+    """
+    Type of area a BS or UE is in.
+    UMA: Urban macro cell
+    UMI: Urban micro cell (street canyon)
+    RMA: Rural macro cell
+    """
+    UMA = enum.auto()
+    UMI = enum.auto()
+    RMA = enum.auto()

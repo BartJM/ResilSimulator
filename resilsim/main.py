@@ -22,8 +22,6 @@ def main():
     for city in all_cities:
         print("Starting simulation for city:{}".format(city.name))
         base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
-        print(base_stations[0])
-        exit(0)
         if ENVIRONMENTAL_RISK:
             for bs in base_stations:
                 bs.range_bs = bs.range_bs * PERCENTAGE_RANGE_BS

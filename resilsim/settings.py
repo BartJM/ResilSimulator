@@ -4,7 +4,7 @@ import os
 ROOT_DIR = Path(__file__).parent
 
 BS_PATH = os.path.join(ROOT_DIR, "data", "antennas.json")
-CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv") #TODO add city centre to the data
+CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv")  # TODO add city centre to the data
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
@@ -21,24 +21,29 @@ ROUNDS_PER_USER = 100
 
 # CITY SPECIFIC PARAMETERS
 ACTIVITY = 0.007
+AVG_BUILDING_HEIGHT = 10
+AVG_STREET_WIDTH = 10
 
-#BASE STATION PROPERTIES
-BS_BS_RANGE = 4000 #TODO what is this used for
+# BASE STATION PROPERTIES
+BS_BS_RANGE = 5000  # TODO what is this used for
 
-MCL = 70 #in db -> seems high for minimum coupling loss???
+MCL = 70  # in db -> seems high for minimum coupling loss???
 HEIGHT_ABOVE_BUILDINGS = 20
-CARRIER_FREQUENCY = 2000 # TODO remove?
-BASE_POWER = 43 #TODO remove
-G_TX = 15 #TODO adapt to be a base number that can be increased by beamforming
+CARRIER_FREQUENCY = 2000  # TODO remove?
+BASE_POWER = 43  # TODO remove
+G_TX = 15  # TODO adapt to be a base number that can be increased by beamforming
 G_RX = 0
 
-OPEN_CHANNELS = 5 # TODO remove -> is replaced by knowledge about the number of channels in the new data set
-CHANNEL_BANDWIDTHS = [20,15,10,5,3,1.4] # TODO find the source/find source for this for 5G
+OPEN_CHANNELS = 5  # TODO remove -> is replaced by knowledge about the number of channels in the new data set
+CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]  # TODO find the source/find source for this for 5G
 
-SIGNAL_NOISE = -100 # TODO why 100?
+SIGNAL_NOISE = -100  # TODO why 100?
+
+# User equipment properties
+UE_HEIGHT = 1.5  # height in meters
 
 # RISKS ENABLED
-#TODO move to more logical location?
+# TODO move to more logical location?
 
 # if a large disaster occured, for instance a natural disaster or a depending failure
 LARGE_DISASTER = False
@@ -55,25 +60,8 @@ ENVIRONMENTAL_RISK = False
 PERCENTAGE_RANGE_BS = 0.8
 ENV_SIGNAL_DEDUC_PER_SEVERITY = 0.05
 
-
 # increasing requested data
 INCREASING_REQUESTED_DATA = False
 OFFSET = 10
 DATA_PER_SEV = 10
 WINDOW_SIZE = 10
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
