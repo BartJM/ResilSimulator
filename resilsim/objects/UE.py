@@ -8,7 +8,6 @@ class UserEquipment:
         self.lon = lon
         self.lat = lat
         self.link = None
-        pass
 
     def set_base_station(self, link: BS_UE_Link):
         self.link = link

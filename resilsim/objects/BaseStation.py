@@ -5,7 +5,8 @@ import random
 
 
 class BaseStation:
-    def __init__(self, radio, lon, lat, height):
+    def __init__(self, id, radio, lon, lat, height):
+        self.id = id
         self.radio = radio
         self.lon = float(lon)
         self.lat = float(lat)
@@ -21,8 +22,10 @@ class BaseStation:
         self.functional = 1
 
     def __str__(self):
-        startmsg = "Base station[], lon:{}, lat:{}, radio:{}".format(self.lon, self.lat,
-                                                                     self.radio)
+        lon = self.lon
+        lat = self.lat
+        radio = str(self.radio)
+        startmsg = f"Base station[{self.id}], {lon=}, {lat=}, {radio=}"
         for channel in self.channels:
             startmsg += "\n{}".format(str(channel))
         return startmsg

@@ -22,6 +22,8 @@ def main():
     for city in all_cities:
         print("Starting simulation for city:{}".format(city.name))
         base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
+        print(str(base_stations[0]))
+        exit(0)
         if ENVIRONMENTAL_RISK:
             for bs in base_stations:
                 bs.range_bs = bs.range_bs * PERCENTAGE_RANGE_BS
@@ -152,7 +154,8 @@ def connect_ue_bs(ue, base_stations, severity=0):
         BS_in_area = sorted(BS_in_area, key=lambda x: x[1])
         for bs, dist in BS_in_area:
             if ENVIRONMENTAL_RISK:
-                new_link = Link.BS_UE_Link(user, bs, dist, signal_deduction=1 - ENV_SIGNAL_DEDUC_PER_SEVERITY * severity)
+                new_link = Link.BS_UE_Link(user, bs, dist,
+                                           signal_deduction=1 - ENV_SIGNAL_DEDUC_PER_SEVERITY * severity)
             else:
                 new_link = Link.BS_UE_Link(user, bs, dist)
 
@@ -180,7 +183,7 @@ def fail(base_stations, ue, links, city, severity):
                 if POWER_OUTAGE:
                     bs.malfunction(0)
                 else:
-                    # When closer to the epicentre the BS will function less good
+                    # When closer to the epicentre the BS will function less
                     bs.malfunction((dist / radius) ** 2)
 
     elif MALICIOUS_ATTACK:
@@ -249,32 +252,13 @@ def load_bs(min_lat, min_lon, max_lat, max_lon):
                 elif bs.get("HOOFDSOORT") == "5G NR":
                     radio = util.BaseStationRadioType.NR
                 else:
-                    radio = None # TODO error when this is true
-                new_bs = bso.BaseStation(radio, bs_lon, bs_lat, bs.get('antennes')[0].get("Hoogte"))
+                    radio = None  # TODO error when this is true
+                new_bs = bso.BaseStation(bs.get('ID'), radio, bs_lon, bs_lat, bs.get('antennes')[0].get("Hoogte"))
                 for antenna in bs.get("antennes"):
                     new_bs.add_channel(antenna.get("Frequentie"), antenna.get("Vermogen"))
                 all_basestations.append(new_bs)
     return all_basestations
 
-
-# def load_bs(min_lat, min_lon, max_lat, max_lon):
-#     all_basestations = list()
-#     all_basestations_dict = dict()
-#
-#     with open(BS_PATH, newline='') as f:
-#         filereader = csv.DictReader(f)
-#         for row in filereader:
-#             lon = float(row["lon"])
-#             lat = float(row["lat"])
-#             if min_lon <= lon <= max_lon and min_lat <= lat <= max_lat:
-#                 if row["area"] not in all_basestations_dict:
-#                     new_basestation = bs.BaseStation(row["radio"], row["mcc"], row["net"], row["area"], row["cell"], row["unit"], lon, lat, row["range"], row["samples"], row["changeable"], row["created"], row["updated"], row["averageSignal"])
-#                     all_basestations_dict[row["area"]] = new_basestation
-#                     all_basestations.append(new_basestation)
-#                 else:
-#                     # TODO: MAYBE COMBINE COORDINATES
-#                     pass
-#     return all_basestations
 
 if __name__ == '__main__':
     main()
