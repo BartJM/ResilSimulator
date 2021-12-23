@@ -57,7 +57,7 @@ class BaseStation:
         other.add_link(new_link)
         return new_link
 
-    def add_ue(self, link: Link.BS_UE_Link):
+    def add_ue(self, link: Link.UE_BS_Link):
         self.connected_UE_links.append(link)
         self.connected_UE.append(link.ue)
 
@@ -112,7 +112,7 @@ class BaseStation:
 
     # TODO add channels (and ue links?) to the copy
     def get_copy(self):
-        return BaseStation(self.radio, self.lon, self.lat)
+        return BaseStation(self.id, self.radio, self.lon, self.lat, self.height)
 
 
 class Channel:

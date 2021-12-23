@@ -8,8 +8,8 @@ class City:
         self.min_lon = float(min_lon)
         self.max_lat = float(max_lat)
         self.max_lon = float(max_lon)
-        self.population = population
-        self.active_users = int((ACTIVITY * int(population)) // 1)
+        self.population = int(population)
+        self.active_users = int((ACTIVITY * self.population) // 1)
 
     def __str__(self):
         return self.name

@@ -25,7 +25,7 @@ class BS_BS_Link:
         return "Link between {} and {}".format(self.device1, self.device2)
 
 
-class BS_UE_Link:
+class UE_BS_Link:
     def __init__(self, ue, base_station, distance: float, signal_deduction: float = 1):
         self.ue = ue
         self.base_station = base_station
@@ -55,9 +55,7 @@ class BS_UE_Link:
 
     @property
     def shannon_capacity(self):
-        return self.base_station.get_bandwidth(self.ue) * self.second_param_capacity * self.signal_deduction
-
-        # return util.shannon_capacity(self.base_station.getBandwidth(self.ue),self.base_station.signal_strength,self.distance)
+        return models.shannon_capacity(self.base_station.get_bandwidth(self.ue), self.second_param_capacity)
 
     @property
     def SNR(self):

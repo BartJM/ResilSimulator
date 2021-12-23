@@ -1,4 +1,4 @@
-from resilsim.objects.Link import BS_UE_Link
+from resilsim.objects.Link import UE_BS_Link
 
 
 class UserEquipment:
@@ -9,7 +9,7 @@ class UserEquipment:
         self.lat = lat
         self.link = None
 
-    def set_base_station(self, link: BS_UE_Link):
+    def set_base_station(self, link: UE_BS_Link):
         self.link = link
 
     @property

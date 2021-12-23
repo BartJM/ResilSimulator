@@ -8,7 +8,7 @@ CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv")  # TODO add city centre t
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
-SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "normal.csv")
+SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "baseline.csv")
 
 AMOUNT_THREADS = 22
 
@@ -25,7 +25,7 @@ AVG_BUILDING_HEIGHT = 10
 AVG_STREET_WIDTH = 10
 
 # BASE STATION PROPERTIES
-BS_BS_RANGE = 5000  # TODO what is this used for
+BS_RANGE = 5000  # maximum range of base stations based on the fact that UMa and UMi models cannot exceed 5km
 
 MCL = 70  # in db -> seems high for minimum coupling loss???
 HEIGHT_ABOVE_BUILDINGS = 20
@@ -54,11 +54,6 @@ RADIUS_PER_SEVERITY = 1000
 MALICIOUS_ATTACK = False
 PERCENTAGE_BASE_STATIONS = 0.5
 FUNCTIONALITY_DECREASED_PER_SEVERITY = 0.1
-
-# small individual errors on some base stations
-ENVIRONMENTAL_RISK = False
-PERCENTAGE_RANGE_BS = 0.8
-ENV_SIGNAL_DEDUC_PER_SEVERITY = 0.05
 
 # increasing requested data
 INCREASING_REQUESTED_DATA = False

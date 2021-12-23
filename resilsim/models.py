@@ -42,7 +42,7 @@ def pathloss_nr(params: ModelParameters):
         else:
             pl_nlos = pathloss_urban_nlos(params.distance_3d, params.frequency, params.ue_height,
                                           13.54, 39.08, 20, 0.6)
-            return max(pl_los,pl_nlos) + atmospheric_attenuation() + shadow_fading(6)
+            return max(pl_los, pl_nlos) + atmospheric_attenuation() + shadow_fading(6)
     elif params.area == util.AreaType.UMI:
         pl_los = pathloss_urban_los(params.distance_2d, params.distance_3d, params.frequency, params.ue_height,
                                     params.bs_height, 32.4, 21, 9.5)
@@ -51,7 +51,7 @@ def pathloss_nr(params: ModelParameters):
         else:
             pl_nlos = pathloss_urban_nlos(params.distance_3d, params.frequency, params.ue_height,
                                           22.4, 35.3, 21.3, 0.3)
-            return max(pl_los,pl_nlos) + atmospheric_attenuation() + shadow_fading(7.82)
+            return max(pl_los, pl_nlos) + atmospheric_attenuation() + shadow_fading(7.82)
     elif params.area == util.AreaType.RMA:
         if params.los:
             if params.distance_2d < 10:
@@ -181,26 +181,32 @@ def los_probability(d_2d, area, ue_h):
         if d_2d <= 10:
             return 1
         else:
-            return np.exp(-((d_2d - 10)/1000))
+            return np.exp(-((d_2d - 10) / 1000))
     elif area == util.AreaType.UMA:
         if d_2d <= 18:
             return 1
         else:
-            return 18/d_2d + np.exp(-d_2d/36)*(1-18/d_2d)
+            return 18 / d_2d + np.exp(-d_2d / 36) * (1 - 18 / d_2d)
     elif area == util.AreaType.UMI:
         if d_2d <= 18:
             return 1
         else:
             if ue_h > 23:
                 raise ValueError("LoS probability model does not function for height larger than 23m")
-            c = 0 if ue_h <= 13 else ((ue_h-13)/10)**1.5
-            return (18/d_2d + np.exp(-d_2d/63)*(1-18/d_2d))*(1+c*(5/4)*(d_2d/100)*np.exp(-d_2d/150))
+            c = 0 if ue_h <= 13 else ((ue_h - 13) / 10) ** 1.5
+            return (18 / d_2d + np.exp(-d_2d / 63) * (1 - 18 / d_2d)) * (
+                        1 + c * (5 / 4) * (d_2d / 100) * np.exp(-d_2d / 150))
     else:
         raise TypeError("Unknown area type")
 
 
-def shannon_capacity(bandwidth, tx, distance):
-    return bandwidth * second_param_capacity(tx, distance)
+def shannon_capacity(bandwidth, second_param=None, tx=None, distance=None):
+    if second_param is None:
+        if tx is None or distance is None:
+            raise ValueError("Without second parameter tx and distance cannot be None")
+        return bandwidth * second_param_capacity(tx, distance)
+    else:
+        return bandwidth * second_param
 
 
 def second_param_capacity(tx, distance):
