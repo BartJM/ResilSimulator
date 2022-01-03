@@ -136,10 +136,10 @@ def create_ue(city):
 def connect_ue_bs(ue, base_stations, severity=0):
     for user in ue:
         BS_in_area = []
-        # Collect all BS within range that
+        # Collect all BS within range
         for bs in base_stations:
             dist = util.distance(user.lat, user.lon, bs.lat, bs.lon)
-            if dist < settings.BS_RANGE and bs.functional > (1 / settings.OPEN_CHANNELS):
+            if dist <= settings.BS_RANGE and bs.functional > (1 / settings.OPEN_CHANNELS):
                 BS_in_area.append((bs, dist))
 
         BS_in_area = sorted(BS_in_area, key=lambda x: x[1])

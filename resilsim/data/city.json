@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Middelburg",
+    "population": "48544",
+    "UMa": {
+      "min_x": "389299",
+      "max_x": "393602",
+      "min_y": "30082",
+      "max_y": "34078"
+    },
+    "UMi": {
+      "min_x": "",
+      "max_x": "",
+      "min_y": "",
+      "max_y": ""
+    }
+  }
+]
