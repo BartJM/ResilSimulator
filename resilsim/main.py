@@ -214,6 +214,7 @@ def reset_all(base_stations, ue):
         user.reset()
 
 
+# TODO change city format and change loading accordingly
 def load_cities():
     all_cities = list()
     with open(settings.CITY_PATH, newline='') as f:
@@ -225,6 +226,7 @@ def load_cities():
     return all_cities
 
 
+# TODO change such that input is a city (also for area type) and add area type to BS
 def load_bs(min_lat, min_lon, max_lat, max_lon):
     all_basestations = list()
     with open(settings.BS_PATH) as f:

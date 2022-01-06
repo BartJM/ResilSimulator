@@ -208,14 +208,21 @@ def shannon_capacity(bandwidth, second_param=None, tx=None, distance=None):
     else:
         return bandwidth * second_param
 
+def shannon_capacity_from_power(power, bandwidth):
+    return shannon_capacity_from_snr(snr_from_power(power), bandwidth)
+
+def shannon_capacity_from_snr(snr, bandwidth):
+    return bandwidth * math.log2(1+snr)
 
 def second_param_capacity(tx, distance):
     return math.log2(1 + snr(tx, distance))
 
 
 def snr(tx, distance):
-    return received_power(tx, distance) / util.to_pwr(settings.SIGNAL_NOISE)
+    return snr_from_power(received_power(tx, distance)) 
 
+def snr_from_power(power):
+    return power / util.to_pwr(settings.SIGNAL_NOISE)
 
 def received_power(tx, distance, radio=util.BaseStationRadioType.LTE):
     # TODO change G_TX and G_RX to go through beamforming model (if needed)
