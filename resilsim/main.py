@@ -2,6 +2,7 @@ import resilsim.objects.Link as Link
 from resilsim.objects.Metrics import Metrics
 from resilsim.objects.UE import UserEquipment
 import resilsim.settings as settings
+import resilsim.models as models
 import numpy as np
 import resilsim.util as util
 import csv
@@ -141,8 +142,9 @@ def connect_ue_bs(ue, base_stations, severity=0):
             dist = util.distance(user.lat, user.lon, bs.lat, bs.lon)
             if dist <= settings.BS_RANGE and bs.functional > (1 / settings.OPEN_CHANNELS):
                 BS_in_area.append((bs, dist))
-
+        # Sort BS in area on from closest to farthest
         BS_in_area = sorted(BS_in_area, key=lambda x: x[1])
+        # Loop over BSs connecting when possible
         for bs, dist in BS_in_area:
             new_link = Link.UE_BS_Link(user, bs, dist)
 

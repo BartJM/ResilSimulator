@@ -8,7 +8,7 @@ import resilsim.settings as settings
 
 @dataclass
 class ModelParameters:
-    los: bool
+    los: bool = None
     distance_2d: float
     distance_3d: float
     frequency: float
@@ -200,33 +200,39 @@ def los_probability(d_2d, area, ue_h):
         raise TypeError("Unknown area type")
 
 
-def shannon_capacity(bandwidth, second_param=None, tx=None, distance=None):
-    if second_param is None:
-        if tx is None or distance is None:
-            raise ValueError("Without second parameter tx and distance cannot be None")
-        return bandwidth * second_param_capacity(tx, distance)
-    else:
-        return bandwidth * second_param
-
-def shannon_capacity_from_power(power, bandwidth):
-    return shannon_capacity_from_snr(snr_from_power(power), bandwidth)
-
-def shannon_capacity_from_snr(snr, bandwidth):
-    return bandwidth * math.log2(1+snr)
-
-def second_param_capacity(tx, distance):
-    return math.log2(1 + snr(tx, distance))
-
-
-def snr(tx, distance):
-    return snr_from_power(received_power(tx, distance)) 
-
-def snr_from_power(power):
-    return power / util.to_pwr(settings.SIGNAL_NOISE)
-
-def received_power(tx, distance, radio=util.BaseStationRadioType.LTE):
+def received_power(radio, tx, params):
     # TODO change G_TX and G_RX to go through beamforming model (if needed)
     if radio == util.BaseStationRadioType.LTE:
-        return util.to_pwr(tx - max(pathloss_lte(distance) - settings.G_TX - settings.G_RX, settings.MCL))
+        return util.to_pwr(tx - max(pathloss_lte(params.distance_2d) - settings.G_TX - settings.G_RX, settings.MCL))
     elif radio == util.BaseStationRadioType.NR or radio == util.BaseStationRadioType.mmWave:
-        return util.to_pwr(tx - pathloss_nr(distance) + settings.G_TX + settings.G_RX)
+        # Determine LOS condition and add to parameters for the model
+        params.los = los_probability(params.distance_2d, params.area, params.ue_h)
+        return util.to_pwr(tx - pathloss_nr(params) + settings.G_TX + settings.G_RX)
+
+def snr(power, noise=settings.SIGNAL_NOISE):
+    return power / util.to_pwr(noise)
+
+def shannon_capacity(snr, bandwidth):
+    return bandwidth * math.log2(1+snr)
+
+
+# TODO rework for modelparams
+
+#def shannon_capacity(bandwidth, second_param=None, tx=None, distance=None):
+#    if second_param is None:
+#        if tx is None or distance is None:
+#            raise ValueError("Without second parameter tx and distance cannot be None")
+#        return bandwidth * second_param_capacity(tx, distance)
+#    else:
+#        return bandwidth * second_param
+#
+#def shannon_capacity_from_power(power, bandwidth):
+#    return shannon_capacity_from_snr(snr_from_power(power), bandwidth)
+#
+#def shannon_capacity_from_snr(snr, bandwidth):
+#    return bandwidth * math.log2(1+snr)
+#
+#def second_param_capacity(tx, distance):
+#    return math.log2(1 + snr(tx, distance))
+
+

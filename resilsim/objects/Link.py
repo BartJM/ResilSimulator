@@ -34,6 +34,8 @@ class UE_BS_Link:
         self.functional = 1
         self.signal_noise = 0
 
+        self.power = None
+
         self.second_param_capacity = models.second_param_capacity(self.base_station.signal_strength, self.distance)
 
         self.bandwidthneeded = None

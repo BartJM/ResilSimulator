@@ -39,7 +39,7 @@ def distance_2d(x1, y1, x2, y2):
 
     return math.sqrt(dist_x**2+dist_y**2)
 
-def distance_3d(x1, y1, h1, x2, y2, h2):
+def distance_3d(h1, h2, x1=None, y1=None, x2=None, y2=None, d2d=None):
     """
     Calculates distance in meters assuming EPSG:28992 coordinate system
     :param x1: x of first point
@@ -50,7 +50,9 @@ def distance_3d(x1, y1, h1, x2, y2, h2):
     :param h2: height of second point
     :return: distance in metres
     """
-    d_2d = distance_2d(x1, y1, x2, y2)
+    d_2d = d2d
+    if d_2d is None:
+        d_2d = distance_2d(x1, y1, x2, y2)
     dist_h = abs(h1-h2)
     return math.sqrt(d_2d**2+dist_h**2)
 
