@@ -29,12 +29,18 @@ def main():
 
         argument_list = arg_list(city, base_stations)
 
-        with Pool(settings.AMOUNT_THREADS) as p:
-            res = p.starmap(pool_func, argument_list)
-
+        for (u,bs,c) in argument_list:
+            res = pool_func(u,bs,c)
             for r in res:
                 for m in range(len(r)):
                     results[m].add_metrics_object(r[m])
+
+#        with Pool(settings.AMOUNT_THREADS) as p:
+#            res = p.starmap(pool_func, argument_list)
+#
+#            for r in res:
+#                for m in range(len(r)):
+#                    results[m].add_metrics_object(r[m])
 
         print("")
         for r in results:
@@ -67,7 +73,7 @@ def arg_list(city, base_stations):
 def pool_func(u, base_stations, city):
     """
     Function to be called by the pool manager
-    :param u: the round
+    :param u: the round per user
     :param base_stations: the basestations for the round
     :param city: the city
     :return: a dictionary with for each severity the resilience metrics
