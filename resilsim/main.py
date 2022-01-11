@@ -29,18 +29,19 @@ def main():
 
         argument_list = arg_list(city, base_stations)
 
-#        for (u,bs,c) in argument_list:
-#            res = pool_func(u,bs,c)
+        # Single threaded
+        for (u,bs,c) in argument_list:
+            res = pool_func(u,bs,c)
+            for m in range(len(res)):
+                results[m].add_metrics_object(res[m])
+
+        # multi threaded
+#        with Pool(settings.AMOUNT_THREADS) as p:
+#            res = p.starmap(pool_func, argument_list)
+#
 #            for r in res:
 #                for m in range(len(r)):
 #                    results[m].add_metrics_object(r[m])
-
-        with Pool(settings.AMOUNT_THREADS) as p:
-            res = p.starmap(pool_func, argument_list)
-
-            for r in res:
-                for m in range(len(r)):
-                    results[m].add_metrics_object(r[m])
 
         print("")
         for r in results:
@@ -84,7 +85,7 @@ def pool_func(u, base_stations, city):
 
     links = connected_base_stations(base_stations)
     UE = create_ue(city)
-    connect_ue_bs(UE, base_stations)
+    #connect_ue_bs(UE, base_stations)
     for severity in range(settings.SEVERITY_ROUNDS):
         for r in range(settings.ROUNDS_PER_SEVERITY):
             print("\rStarting simulation:({},{},{})".format(u, severity, r), end='')
@@ -189,7 +190,9 @@ def fail(base_stations, ue, links, city, severity):
             user.requested_capacity = cap
 
     else:
-        return False
+        return severity == 0
+
+    return True
 
 
 def simulate(base_stations, ue, links):
