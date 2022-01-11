@@ -10,7 +10,7 @@ SAVE_IN_CSV = True
 CREATE_PLOT = False
 SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "baseline.csv")
 
-AMOUNT_THREADS = 22
+AMOUNT_THREADS = None
 
 UE_CAPACITY_MIN = 10
 UE_CAPACITY_MAX = 100

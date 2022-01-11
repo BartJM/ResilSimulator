@@ -29,18 +29,18 @@ def main():
 
         argument_list = arg_list(city, base_stations)
 
-        for (u,bs,c) in argument_list:
-            res = pool_func(u,bs,c)
-            for r in res:
-                for m in range(len(r)):
-                    results[m].add_metrics_object(r[m])
-
-#        with Pool(settings.AMOUNT_THREADS) as p:
-#            res = p.starmap(pool_func, argument_list)
-#
+#        for (u,bs,c) in argument_list:
+#            res = pool_func(u,bs,c)
 #            for r in res:
 #                for m in range(len(r)):
 #                    results[m].add_metrics_object(r[m])
+
+        with Pool(settings.AMOUNT_THREADS) as p:
+            res = p.starmap(pool_func, argument_list)
+
+            for r in res:
+                for m in range(len(r)):
+                    results[m].add_metrics_object(r[m])
 
         print("")
         for r in results:
@@ -91,7 +91,8 @@ def pool_func(u, base_stations, city):
             # print("Resetting base stations and UE")
             reset_all(base_stations, UE)
             # print("Failing base stations and links")
-            fail(base_stations, UE, links, city, severity)
+            if not fail(base_stations, UE, links, city, severity):
+                continue  # Nothing to fail due to no events enabled
             # print("Connecting UE to BS again")
             connect_ue_bs(UE, base_stations, severity)
             # print("Directing capacities to the users")
@@ -186,6 +187,9 @@ def fail(base_stations, ue, links, city, severity):
             user = ue[i]
             cap = all_cap[i]
             user.requested_capacity = cap
+
+    else:
+        return False
 
 
 def simulate(base_stations, ue, links):
