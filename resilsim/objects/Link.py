@@ -1,7 +1,5 @@
-import math
 import resilsim.models as models
-import resilsim.util as util
-from resilsim.settings import CHANNEL_BANDWIDTHS, SIGNAL_NOISE
+import resilsim.settings as settings
 
 
 class BS_BS_Link:
@@ -12,11 +10,11 @@ class BS_BS_Link:
         self.functional = 1
         pass
 
-    def other(self, BS):
-        if self.device1 is BS:
+    def other(self, bs):
+        if self.device1 is bs:
             return self.device2
 
-        if self.device2 is BS:
+        if self.device2 is bs:
             return self.device1
 
         return None
@@ -26,46 +24,53 @@ class BS_BS_Link:
 
 
 class UE_BS_Link:
-    def __init__(self, ue, base_station, distance: float, signal_deduction: float = 1):
+    def __init__(self, ue, base_station, channel, power, dist):
+        """
+        :param ue:
+        :param base_station:
+        """
         self.ue = ue
         self.base_station = base_station
-        self.distance = distance
-        self.signal_deduction = signal_deduction
-        self.functional = 1
-        self.signal_noise = 0
+        self.power = power
+        self.channel = channel
+        self.distance = dist
 
-        self.power = None
+    @property
+    def needed_bandwidth(self):
+        """
+        Calcculates needed bandwidth for this link based on the requested capacity and shannons capacity
+        :return: the needed bandwidth
+        """
+        # TODO potential for division by 0
+        return self.ue.requested_capacity / models.shannon_second_param(self.snr)
 
-        self.second_param_capacity = models.second_param_capacity(self.base_station.signal_strength, self.distance)
+    @property
+    def bandwidthneeded(self):
+        """
+        Calculates the bandwidth of a channel that is needed to satisfy the requested capacity of this link
+        :return: smallest needed bandwidth chosen from settings.CHANNEL_BANDWIDTHS
+        such that the full requested capacity is used
+        """
+        needed_bandwidth = settings.CHANNEL_BANDWIDTHS[0] # maximum bandwidth for a channel
+        for bandwidth in settings.CHANNEL_BANDWIDTHS:
+            if self.needed_bandwidth > bandwidth:
+                break
+            else:
+                needed_bandwidth = bandwidth
 
-        self.bandwidthneeded = None
-
-        if self.second_param_capacity != 0:
-            b = self.ue.requested_capacity / self.second_param_capacity
-
-            bandwidth_length = len(CHANNEL_BANDWIDTHS)
-            for bandwidth in range(bandwidth_length):
-                if b > bandwidth:
-                    if bandwidth == 0:
-                        self.bandwidthneeded = CHANNEL_BANDWIDTHS[0]
-                    else:
-                        self.bandwidthneeded = CHANNEL_BANDWIDTHS[bandwidth - 1]
-                    break
-
-                if bandwidth == bandwidth_length - 1:
-                    self.bandwidthneeded = CHANNEL_BANDWIDTHS[-1]
+        return needed_bandwidth
 
     @property
     def shannon_capacity(self):
-        return models.shannon_capacity(self.base_station.get_bandwidth(self.ue), self.second_param_capacity)
+        """
+        Get the shannon capacity of the current connection
+        :return:
+        """
+        return models.shannon_capacity(self.snr, self.base_station.get_bandwidth(self.ue))
 
     @property
-    def SNR(self):
-        return models.snr(self.base_station.signal_strength, self.distance)
-
-    def set_signal_noise(self, new_noise):
-        self.signal_noise = new_noise
-        self.second_param_capacity = models.second_param_capacity(self.base_station.signal_strength, self.distance)
+    def snr(self):
+        return models.snr(self.power)
 
     def __str__(self):
         return "Link between {} and {}".format(self.ue, self.base_station)

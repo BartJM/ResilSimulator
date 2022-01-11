@@ -8,11 +8,11 @@ import resilsim.settings as settings
 
 @dataclass
 class ModelParameters:
-    los: bool = None
     distance_2d: float
-    distance_3d: float
-    frequency: float
-    bs_height: float
+    distance_3d: float = None
+    los: bool = None
+    frequency: float = settings.CARRIER_FREQUENCY
+    bs_height: float = settings.HEIGHT_ABOVE_BUILDINGS
     ue_height: float = settings.UE_HEIGHT
     area: util.AreaType = util.AreaType.UMA
     avg_building_height: float = settings.AVG_BUILDING_HEIGHT
@@ -132,15 +132,16 @@ def pathloss_urban_nlos(d_3d, f, ue_h, a, b, c, d):
     return a + b * np.log10(d_3d) + c * np.log10(f) - d * (ue_h - 1.5)
 
 
-def pathloss_lte(distance):
+def pathloss_lte(params):
     """
     Calculates the path-loss for LTE towers.
-    :param distance: 2D distance between user equipment and basestation
-    :return: path-loss in dB
+    :param params: model parameters
+    :return: path-loss in dBW
     """
-    MODEL_A = -18 * np.log10(settings.HEIGHT_ABOVE_BUILDINGS) + 21 * np.log10(settings.CARRIER_FREQUENCY) + 80
-    MODEL_B = 40 * (1 - 4 * (10 ** -3) * settings.HEIGHT_ABOVE_BUILDINGS)
-    return (MODEL_A + MODEL_B * math.log10(distance / 1000)) + math.sqrt(10) * np.random.random()
+    hab = params.bs_height - params.avg_building_height # height above buildings
+    MODEL_A = -18 * np.log10(hab) + 21 * np.log10(params.frequency) + 80
+    MODEL_B = 40 * (1 - 4 * (10 ** -3) * hab)
+    return (MODEL_A + MODEL_B * math.log10(params.distance_2d / 1000)) + math.sqrt(10) * np.random.random()
 
 
 def breakpoint_distance(frequency, bs_height, ue_height=settings.UE_HEIGHT):
@@ -195,44 +196,54 @@ def los_probability(d_2d, area, ue_h):
                 raise ValueError("LoS probability model does not function for height larger than 23m")
             c = 0 if ue_h <= 13 else ((ue_h - 13) / 10) ** 1.5
             return (18 / d_2d + np.exp(-d_2d / 63) * (1 - 18 / d_2d)) * (
-                        1 + c * (5 / 4) * (d_2d / 100) * np.exp(-d_2d / 150))
+                    1 + c * (5 / 4) * (d_2d / 100) * np.exp(-d_2d / 150))
     else:
         raise TypeError("Unknown area type")
 
 
 def received_power(radio, tx, params):
+    """
+    Calculates the power received
+    :param radio: radio type (LTE, 5G NR, mmWave)
+    :type radio: util.BaseStationRadioType
+    :param tx: transmitted power
+    :param params: Model parameters
+    :return: power received
+    """
     # TODO change G_TX and G_RX to go through beamforming model (if needed)
     if radio == util.BaseStationRadioType.LTE:
-        return util.to_pwr(tx - max(pathloss_lte(params.distance_2d) - settings.G_TX - settings.G_RX, settings.MCL))
+        return util.to_pwr(tx - max(pathloss_lte(params) - settings.G_TX - settings.G_RX, settings.MCL))
     elif radio == util.BaseStationRadioType.NR or radio == util.BaseStationRadioType.mmWave:
         # Determine LOS condition and add to parameters for the model
-        params.los = los_probability(params.distance_2d, params.area, params.ue_h)
+        params.los = los_probability(params.distance_2d, params.area, params.ue_height)
         return util.to_pwr(tx - pathloss_nr(params) + settings.G_TX + settings.G_RX)
 
+
 def snr(power, noise=settings.SIGNAL_NOISE):
+    """
+    Calculates signal to noise ratio
+    :param power: power of the signal in W
+    :param noise: noise in dbW
+    :return: signal to noise ratio
+    """
     return power / util.to_pwr(noise)
 
+
 def shannon_capacity(snr, bandwidth):
-    return bandwidth * math.log2(1+snr)
+    """
+    Calculated the shannon capacity
+    :param snr:
+    :param bandwidth:
+    :return:
+    """
+    return bandwidth * shannon_second_param(snr)
 
 
-# TODO rework for modelparams
-
-#def shannon_capacity(bandwidth, second_param=None, tx=None, distance=None):
-#    if second_param is None:
-#        if tx is None or distance is None:
-#            raise ValueError("Without second parameter tx and distance cannot be None")
-#        return bandwidth * second_param_capacity(tx, distance)
-#    else:
-#        return bandwidth * second_param
-#
-#def shannon_capacity_from_power(power, bandwidth):
-#    return shannon_capacity_from_snr(snr_from_power(power), bandwidth)
-#
-#def shannon_capacity_from_snr(snr, bandwidth):
-#    return bandwidth * math.log2(1+snr)
-#
-#def second_param_capacity(tx, distance):
-#    return math.log2(1 + snr(tx, distance))
-
+def shannon_second_param(snr):
+    """
+    Calculates the second parameter of the shannon capacity formula
+    :param snr: signal-to-noise ratiio
+    :return:
+    """
+    return math.log2(1 + snr)
 

@@ -19,6 +19,8 @@ SEVERITY_ROUNDS = 10
 ROUNDS_PER_SEVERITY = 2
 ROUNDS_PER_USER = 100
 
+MINIMUM_POWER = -80 #dbW
+
 # CITY SPECIFIC PARAMETERS
 ACTIVITY = 0.007
 AVG_BUILDING_HEIGHT = 10
@@ -27,17 +29,16 @@ AVG_STREET_WIDTH = 10
 # BASE STATION PROPERTIES
 BS_RANGE = 5000  # maximum range of base stations based on the fact that UMa and UMi models cannot exceed 5km
 
-MCL = 70  # in db -> seems high for minimum coupling loss???
+MCL = 70  # in dbW
 HEIGHT_ABOVE_BUILDINGS = 20
 CARRIER_FREQUENCY = 2000  # TODO remove?
 BASE_POWER = 43  # TODO remove
 G_TX = 15  # TODO adapt to be a base number that can be increased by beamforming
 G_RX = 0
 
-OPEN_CHANNELS = 5  # TODO remove -> is replaced by knowledge about the number of channels in the new data set
 CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]  # TODO find the source/find source for this for 5G
 
-SIGNAL_NOISE = -100  # TODO why 100?
+SIGNAL_NOISE = -100  # TODO why -100?
 
 # User equipment properties
 UE_HEIGHT = 1.5  # height in meters

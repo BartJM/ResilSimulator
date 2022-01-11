@@ -1,14 +1,14 @@
-import resilsim.objects.Link as Link
+import copy
+
 from resilsim.objects.Metrics import Metrics
 from resilsim.objects.UE import UserEquipment
 import resilsim.settings as settings
-import resilsim.models as models
 import numpy as np
 import resilsim.util as util
 import csv
 import json
 import resilsim.objects.BaseStation as bso
-from resilsim.objects.City import City
+import resilsim.objects.City as City
 
 from multiprocessing import Pool
 
@@ -22,7 +22,7 @@ def main():
 
     for city in all_cities:
         print("Starting simulation for city:{}".format(city.name))
-        base_stations = load_bs(city.min_lat, city.min_lon, city.max_lat, city.max_lon)
+        base_stations = load_bs(city)
         results = []
         for s in range(settings.SEVERITY_ROUNDS):
             results.append(Metrics())
@@ -58,7 +58,8 @@ def arg_list(city, base_stations):
     """
     res = []
     for u in range(settings.ROUNDS_PER_USER):
-        copy_bs = [bs.get_copy() for bs in base_stations]
+        #copy_bs = [bs.get_copy() for bs in base_stations]
+        copy_bs = copy.deepcopy(base_stations)
         res.append((u, copy_bs, city))
     return res
 
@@ -140,23 +141,14 @@ def connect_ue_bs(ue, base_stations, severity=0):
         # Collect all BS within range
         for bs in base_stations:
             dist = util.distance(user.lat, user.lon, bs.lat, bs.lon)
-            if dist <= settings.BS_RANGE and bs.functional > (1 / settings.OPEN_CHANNELS):
+            if dist <= settings.BS_RANGE:
                 BS_in_area.append((bs, dist))
+
         # Sort BS in area on from closest to farthest
         BS_in_area = sorted(BS_in_area, key=lambda x: x[1])
         # Loop over BSs connecting when possible
         for bs, dist in BS_in_area:
-            new_link = Link.UE_BS_Link(user, bs, dist)
-
-            if new_link.bandwidthneeded is None:
-                continue
-            user.set_base_station(new_link)
-            bs.add_ue(new_link)
-            if bs.overflow:
-                bs.remove_ue(new_link)
-                user.reset()
-                bs.direct_capacities()
-            else:
+            if bs.add_ue(user):
                 break
 
 
@@ -222,14 +214,15 @@ def load_cities():
     with open(settings.CITY_PATH, newline='') as f:
         filereader = csv.DictReader(f)
         for row in filereader:
-            all_cities.append(City(row["name"], row["min_lat"], row["min_lon"], row["max_lat"], row["max_lon"],
-                                   row["population"]))
+            all_cities.append(City.City(row["name"], row["min_lat"], row["min_lon"], row["max_lat"], row["max_lon"],
+                                        row["population"]))
 
     return all_cities
 
 
 # TODO change such that input is a city (also for area type) and add area type to BS
-def load_bs(min_lat, min_lon, max_lat, max_lon):
+def load_bs(city):
+    min_lat, min_lon, max_lat, max_lon = city.min_lat, city.min_lon, city.max_lat, city.max_lon
     all_basestations = list()
     with open(settings.BS_PATH) as f:
         bss = json.load(f)
@@ -244,9 +237,15 @@ def load_bs(min_lat, min_lon, max_lat, max_lon):
                     radio = util.BaseStationRadioType.NR
                 else:
                     radio = None  # TODO error when this is true
-                new_bs = bso.BaseStation(bs.get('ID'), radio, bs_lon, bs_lat, bs.get('antennes')[0].get("Hoogte"))
+                # TODO change area when city contains that data properly
+                h = bs.get('antennes')[0].get("Hoogte")
+                h = util.str_to_float(h)
+                new_bs = bso.BaseStation(bs.get('ID'), radio, bs_lon, bs_lat, h,
+                                         City.Area(min_lat, min_lon, max_lat, max_lon))
                 for antenna in bs.get("antennes"):
-                    new_bs.add_channel(antenna.get("Frequentie"), antenna.get("Vermogen"))
+                    f = util.str_to_float(antenna.get("Frequentie"))
+                    p = util.str_to_float(antenna.get("Vermogen"))
+                    new_bs.add_channel(f, p)
                 all_basestations.append(new_bs)
     return all_basestations
 

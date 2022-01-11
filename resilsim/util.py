@@ -1,5 +1,7 @@
 import csv
 import math
+import re
+
 import numpy as np
 
 import resilsim.settings as settings
@@ -10,6 +12,9 @@ import enum
 
 
 def distance(lat1, lon1, lat2, lon2):
+    # Rewritten to use EPSG:28992
+    return distance_2d(lat1, lon1, lat2, lon2)
+
     # Based on WSG84?, returns dist in meter?
     r = 6378.137
     lat1 = math.radians(lat1)
@@ -25,6 +30,7 @@ def distance(lat1, lon1, lat2, lon2):
     d = r * c
     return d * 1000
 
+
 def distance_2d(x1, y1, x2, y2):
     """
     Calculates distance in meters assuming EPSG:28992 coordinate system
@@ -34,27 +40,32 @@ def distance_2d(x1, y1, x2, y2):
     :param y2: y of second point
     :return: distance in metres
     """
-    dist_x = abs(x1-x2)
-    dist_y = abs(y1-y2)
+    dist_x = abs(x1 - x2)
+    dist_y = abs(y1 - y2)
 
-    return math.sqrt(dist_x**2+dist_y**2)
+    return math.sqrt(dist_x ** 2 + dist_y ** 2)
+
 
 def distance_3d(h1, h2, x1=None, y1=None, x2=None, y2=None, d2d=None):
     """
-    Calculates distance in meters assuming EPSG:28992 coordinate system
+    Calculates distance in meters assuming EPSG:28992 coordinate system.
+    Either distance between the points or x,y coordinates for the two points is needed
+    :param h1: height of first point
+    :param h2: height of second point
     :param x1: x of first point
     :param y1: y of first point
-    :param h1: height of first point
     :param x2: x of second point
     :param y2: y of second point
-    :param h2: height of second point
-    :return: distance in metres
+    :param d2d: distance between the points
+    :return:
     """
+
     d_2d = d2d
     if d_2d is None:
         d_2d = distance_2d(x1, y1, x2, y2)
-    dist_h = abs(h1-h2)
-    return math.sqrt(d_2d**2+dist_h**2)
+    dist_h = abs(h1 - h2)
+    return math.sqrt(d_2d ** 2 + dist_h ** 2)
+
 
 def isolated_users(ue):
     counter = 0
@@ -179,9 +190,6 @@ def get_x_values():
     elif settings.MALICIOUS_ATTACK:
         return [(settings.FUNCTIONALITY_DECREASED_PER_SEVERITY * s) for s in
                 range(settings.SEVERITY_ROUNDS)], "Functionality decreased of BS"
-    elif settings.ENVIRONMENTAL_RISK:
-        return [s * settings.ENV_SIGNAL_DEDUC_PER_SEVERITY for s in
-                range(settings.SEVERITY_ROUNDS)], "Signal strength reduced (%)"
     elif settings.INCREASING_REQUESTED_DATA:
         return [s for s in range(settings.SEVERITY_ROUNDS)], "Severity level of increasing data"
 
@@ -251,6 +259,7 @@ class BaseStationRadioType(enum.Enum):
     LTE = enum.auto()
     mmWave = enum.auto()
 
+
 @enum.unique
 class AreaType(enum.Enum):
     """
@@ -262,3 +271,13 @@ class AreaType(enum.Enum):
     UMA = enum.auto()
     UMI = enum.auto()
     RMA = enum.auto()
+
+
+def str_to_float(str):
+    """
+    Strips all non digit characters from string (except .) and transforms to float
+    :param str:
+    :return:
+    """
+    s = re.sub(r'[^\d.]+', '', str)
+    return float(s)

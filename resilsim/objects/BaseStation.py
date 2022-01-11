@@ -1,19 +1,21 @@
-from resilsim.settings import OPEN_CHANNELS, CHANNEL_BANDWIDTHS, BASE_POWER
 import resilsim.objects.Link as Link
-import math
+import resilsim.objects.City as City
+import resilsim.settings as settings
+import resilsim.util as util
+import resilsim.models as models
 import random
 
 
 class BaseStation:
-    def __init__(self, id, radio, lon, lat, height):
+    def __init__(self, id, radio, lon, lat, height, area):
         self.id = id
         self.radio = radio
         self.lon = float(lon)
         self.lat = float(lat)
-        self.height = height
+        self.height = float(height)
+        self.area: City.Area = area
 
-        self.connected_UE_links = list()
-        self.connected_UE = list()
+        self.connected_UE = dict()  # Dict(UE: Link)
         self.connected_BS = list()
 
         self.minimum_band_needed = dict()
@@ -27,7 +29,7 @@ class BaseStation:
         radio = str(self.radio)
         startmsg = f"Base station[{self.id}], {lon=}, {lat=}, {radio=}"
         for channel in self.channels:
-            startmsg += "\n{}".format(str(channel))
+            startmsg += "\n\t{}".format(str(channel))
         return startmsg
 
     def malfunction(self, new_functional):
@@ -57,23 +59,64 @@ class BaseStation:
         other.add_link(new_link)
         return new_link
 
-    def add_ue(self, link: Link.UE_BS_Link):
-        self.connected_UE_links.append(link)
-        self.connected_UE.append(link.ue)
-
-        if link.bandwidthneeded not in self.minimum_band_needed:
-            self.minimum_band_needed[link.bandwidthneeded] = list()
-
-        self.minimum_band_needed[link.bandwidthneeded].append(link.ue)
+    def add_ue(self, ue, dist=None):
+        """
+        Adds a user connection to the basestation
+        :param ue: user equipment to add
+        :return: true if successfull otherwise false
+        """
+        # Get best channel to add a device to
         channel = max(self.channels, key=lambda c: (c.productivity, c.band_left))
-        channel.add_devices(link.ue, link.bandwidthneeded)
+        if not channel.has_band_left():
+            # Best channel cannot accept more connections
+            return False
 
+        # Calculate the power for the connection with the channel and create the link
+        if dist is None:
+            dist = util.distance_2d(self.lon, self.lat, ue.lon, ue.lat)
+        params = models.ModelParameters(dist)
+        params.distance_3d = util.distance_3d(self.height, ue.height, d2d=dist)
+        if self.radio is util.BaseStationRadioType.NR or self.radio is util.BaseStationRadioType.mmWave:
+            # Set LoS probability
+            params.los = models.los_probability(dist, self.area.area_type, ue.height)
+        params.ue_height = ue.height
+        params.self_height = self.height
+        params.area = self.area.area_type
+        params.avg_building_height = self.area.avg_building_height
+        params.avg_street_width = self.area.avg_street_width
+        params.frequency = channel.frequency
+        power = models.received_power(self.radio, channel.power, params)
+        if power < util.to_pwr(settings.MINIMUM_POWER):
+            return False
+        new_link = Link.UE_BS_Link(ue, self, channel, power, dist)
+        self.connected_UE[ue] = new_link
+        channel_add = channel.add_device(ue, new_link.bandwidthneeded)
+        # Additional test that should never trigger
+        # if device failed to be added to the channel or the BS oveerflows revert and return False
+        if not channel_add:
+            del self.connected_UE[ue]
+            return False
+        if self.overflow:
+            del self.connected_UE[ue]
+            del channel.devices[ue]
+            del channel.desired_band[ue]
+            return False
+        ue.set_base_station(new_link)
+
+        return True
+
+    @DeprecationWarning
     def direct_capacities(self):
+        """
+        DO NOT USE: DOES NOT DO Usefull stuff
+        original use: redistribute connected ue over the channels
+        :return:
+        """
         self.create_new_channels()
         self.connected_UE = sorted(self.connected_UE, key=lambda x: x.link.bandwidthneeded, reverse=True)
         for UE in self.connected_UE:
             channel = max(self.channels, key=lambda c: (c.productivity, c.band_left))
-            channel.add_devices(UE, UE.link.bandwidthneeded)
+            channel.add_device(UE, UE.link.bandwidthneeded)
 
     @property
     def overflow(self):
@@ -84,8 +127,7 @@ class BaseStation:
         return False
 
     def remove_ue(self, ue_link):
-        self.connected_UE_links.remove(ue_link)
-        self.connected_UE.remove(ue_link.ue)
+        del self.connected_UE[ue_link.ue]
 
     def get_bandwidth(self, ue):
         for channel in self.channels:
@@ -108,11 +150,12 @@ class BaseStation:
         self.functional = 1
         self.create_new_channels()
         self.connected_UE.clear()
-        self.connected_UE_links.clear()
 
     # TODO add channels (and ue links?) to the copy
+    @DeprecationWarning
     def get_copy(self):
-        return BaseStation(self.id, self.radio, self.lon, self.lat, self.height)
+        new_bs = BaseStation(self.id, self.radio, self.lon, self.lat, self.height, self.area)
+
 
 
 class Channel:
@@ -125,33 +168,62 @@ class Channel:
 
         self.enabled = enabled
 
-        a = [20, 15, 10, 5, 3, 1.3]
-        d1 = 12
-
-    def add_devices(self, ue, minimum_bandwidth):
+    def add_device(self, ue, minimum_bandwidth):
+        """
+        Attempts to add new device to the channel
+        :param ue:
+        :param minimum_bandwidth:
+        :return: True if successful otherwise False
+        """
+        # Check if device can be added
+        if not self.has_band_left():
+            return False
+        # Add device
         self.devices[ue] = minimum_bandwidth
         self.desired_band[ue] = minimum_bandwidth
-
         while self.band_left < 0:
+            # Push device with maximum band down
             device = max(self.devices, key=lambda d: self.devices[d])
             stop_next = False
-            for i in CHANNEL_BANDWIDTHS:
+            new_band = None
+            for i in settings.CHANNEL_BANDWIDTHS:
                 if stop_next:
+                    # enter here for a band lower than the band of the device
                     stop_next = False
+                    new_band = i
                     break
 
                 if self.devices[device] == i:
+                    # Gets the current band for the device
                     stop_next = True
 
             if stop_next:
+                # Could not push this device down a band
+                # Should never be reached
                 self.devices[device] = 0
                 break
 
-            self.devices[device] = i
+            self.devices[device] = new_band
+
+        return True
 
     @property
     def band_left(self):
-        return CHANNEL_BANDWIDTHS[0] - sum([self.devices[d] for d in self.devices])
+        return settings.CHANNEL_BANDWIDTHS[0] - sum([self.devices[d] for d in self.devices])
+
+    def has_band_left(self):
+        band_left = self.band_left
+        minimum_channel_bandwidth = settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1]
+        for device in self.devices:
+            if band_left > minimum_channel_bandwidth:
+                break
+            band_left += self.devices[device] - minimum_channel_bandwidth
+
+        if band_left < minimum_channel_bandwidth:
+            # If there is less bandwidth left than the smallest band no devices can be connected
+            return False
+        else:
+            return True
 
     @property
     def connected_devices(self):
