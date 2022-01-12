@@ -23,16 +23,6 @@ class City:
         self.min_lon = float(min_lon)
         self.max_lat = float(max_lat)
         self.max_lon = float(max_lon)
-        # Areas borders for umi,uma,rma
-        #TODO remove in favor of the areas
-        self.min_lat_uma = None
-        self.min_lon_uma = None
-        self.max_lat_uma = None
-        self.max_lon_uma = None
-        self.min_lat_umi = None
-        self.min_lon_umi = None
-        self.max_lat_umi = None
-        self.max_lon_umi = None
         # Areas in the city
         self.umi_area = None
         self.uma_area = None
@@ -49,18 +39,24 @@ class City:
                % (self.__class__, self.name, self.population, self.active_users,
                   self.min_lat, self.max_lat, self.min_lon, self.max_lon)
 
-    def area_type(self, lon, lat):
-        # TODO rewrite to use Area instead
-        # gives area type for the given location
-        if not (self.min_lon <= lon <= self.max_lon and self.min_lat <= lat <= self.max_lat):
-            raise ValueError("Location not within city")
-        else:
-            # Check if city is specified otherwise default to UMa
-            if not self.areas_defined:
-                return util.AreaType.UMA
-            # Check for area type
-            if self.min_lon_umi <= lon <= self.max_lon_umi and self.min_lat_umi <= lat <= self.max_lat_umi:
-                return util.AreaType.UMI
-            elif self.min_lon_uma <= lon <= self.max_lon_uma and self.min_lat_uma <= lat <= self.max_lat_uma:
-                return util.AreaType.UMA
-            return util.AreaType.RMA
+    def area(self, lon, lat):
+        """
+        Returns the area of a location
+        :param lon: lon of the location
+        :param lat: lat of the location
+        :return: The area the location (lon,lat) is in
+        """
+        # If area exists
+        if self.umi_area is not None:
+            # If location within border
+            if self.umi_area.min_lon <= lon <= self.umi_area.max_lon \
+                    and self.umi_area.min_lat <= lat <= self.umi_area.max_lat:
+                return self.umi_area
+        if self.uma_area is not None:
+            if self.uma_area.min_lon <= lon <= self.uma_area.max_lon \
+                    and self.uma_area.min_lat <= lat <= self.uma_area.max_lat:
+                return self.uma_area
+        if self.rma_area is not None:
+            if self.rma_area.min_lon <= lon <= self.rma_area.max_lon \
+                    and self.rma_area.min_lat <= lat <= self.rma_area.max_lat:
+                return self.rma_area

@@ -135,8 +135,23 @@ def snr_averages(ue):
     return sum(snrs) / len(snrs) if len(snrs) > 0 else 0
 
 
-def active_base_stations(bs):
-    return sum([1 if bs.functional >= 0.2 else 0 for bs in bs])
+def active_base_stations(bs): # TODO make nicer (if BS has channels available set as active)
+    ab = 0
+    for b in bs:
+        for c in b.channels:
+            if c.enabled:
+                ab += 1
+                break
+    return ab
+#    return sum([1 if bs.functional >= 0.2 else 0 for bs in bs])
+
+def active_channels(bs):
+    ac = 0
+    for b in bs:
+        for c in b.channels:
+            if c.enabled:
+                ac += 1
+    return ac
 
 
 def connected_ue_bs(base_stations):
@@ -180,6 +195,8 @@ def get_unit(index):
         return "Avg. SNR (ratio)"
     elif index == 7:
         return "Avg. #users connected to BS"
+    elif index == 8:
+        return "#Active channels"
     else:
         return "Error"
 
@@ -197,7 +214,7 @@ def get_x_values():
 def create_plot(city_results):
     x_values, unit = get_x_values()
 
-    for z in [0, 1]:
+    for z in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
         fig = go.Figure()
         for city in city_results:
             results = [m.get_metrics() for m in city_results[city]]
@@ -233,7 +250,7 @@ def cdf(data, confidence=0.95):
 def create_new_file():
     with open(settings.SAVE_CSV_PATH, 'w', newline='') as f:
         fieldnames = ['city', 'severity', 'isolated_users', 'received_service', 'received_service_half', 'avg_distance',
-                      'isolated_systems', 'active_base_stations', 'avg_snr', 'connected_UE_BS']
+                      'isolated_systems', 'active_base_stations', 'avg_snr', 'connected_UE_BS', 'active_channels']
         csv_writer = csv.writer(f)
         csv_writer.writerow(fieldnames)
 
@@ -257,7 +274,6 @@ class BaseStationRadioType(enum.Enum):
     """
     NR = enum.auto()
     LTE = enum.auto()
-    mmWave = enum.auto()
 
 
 @enum.unique

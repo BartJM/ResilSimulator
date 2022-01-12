@@ -11,7 +11,7 @@ class ModelParameters:
     distance_2d: float
     distance_3d: float = None
     los: bool = None
-    frequency: float = settings.CARRIER_FREQUENCY
+    frequency: float = settings.CARRIER_FREQUENCY # in MHz
     bs_height: float = settings.HEIGHT_ABOVE_BUILDINGS
     ue_height: float = settings.UE_HEIGHT
     area: util.AreaType = util.AreaType.UMA
@@ -23,9 +23,8 @@ class ModelParameters:
         return self.distance_2d
 
     def __copy__(self):
-        return ModelParameters(self.los, self.distance_2d, self.distance_3d, self.frequency, self.bs_height,
-                               self.ue_height,
-                               self.area, self.avg_building_height, self.avg_street_width)
+        return ModelParameters(self.distance_2d, self.distance_3d, self.los, self.frequency, self.bs_height,
+                               self.ue_height, self.area, self.avg_building_height, self.avg_street_width)
 
 
 def pathloss_nr(params: ModelParameters):
@@ -102,8 +101,7 @@ def pathloss_urban_los(d_2d, d_3d, f, ue_h, bs_h, a, b, c):
     :param bs_h: BS height
     :param a: parameter alpha
     :param b: parameter beta
-    :param c: parameter gamme
-    :param d: parameter delta
+    :param c: parameter gamma
     :return: path loss in dB
     """
     if d_2d < 10:
@@ -138,7 +136,7 @@ def pathloss_lte(params):
     :param params: model parameters
     :return: path-loss in dBW
     """
-    hab = params.bs_height - params.avg_building_height # height above buildings
+    hab = settings.HEIGHT_ABOVE_BUILDINGS
     MODEL_A = -18 * np.log10(hab) + 21 * np.log10(params.frequency) + 80
     MODEL_B = 40 * (1 - 4 * (10 ** -3) * hab)
     return (MODEL_A + MODEL_B * math.log10(params.distance_2d / 1000)) + math.sqrt(10) * np.random.random()
@@ -157,7 +155,7 @@ def breakpoint_distance(frequency, bs_height, ue_height=settings.UE_HEIGHT):
 
 
 def atmospheric_attenuation():
-    return 0
+    return 0.0
 
 
 def shadow_fading(sd):
@@ -167,7 +165,7 @@ def shadow_fading(sd):
     :param sd: the standard deviation of the distribution
     :return:
     """
-    return np.random.lognormal(0, sd, 1)
+    return float(np.random.lognormal(0, sd, None))
 
 
 def los_probability(d_2d, area, ue_h):
@@ -213,7 +211,9 @@ def received_power(radio, tx, params):
     # TODO change G_TX and G_RX to go through beamforming model (if needed)
     if radio == util.BaseStationRadioType.LTE:
         return util.to_pwr(tx - max(pathloss_lte(params) - settings.G_TX - settings.G_RX, settings.MCL))
-    elif radio == util.BaseStationRadioType.NR or radio == util.BaseStationRadioType.mmWave:
+    elif radio == util.BaseStationRadioType.NR:
+        # ModelParams contains frequency in MHz while the models use GHz, change the value here
+        params.frequency = params.frequency/1000
         # Determine LOS condition and add to parameters for the model
         params.los = los_probability(params.distance_2d, params.area, params.ue_height)
         return util.to_pwr(tx - pathloss_nr(params) + settings.G_TX + settings.G_RX)

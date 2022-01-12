@@ -1,3 +1,5 @@
+import math
+
 import resilsim.objects.Link as Link
 import resilsim.objects.City as City
 import resilsim.settings as settings
@@ -18,7 +20,7 @@ class BaseStation:
         self.connected_UE = dict()  # Dict(UE: Link)
         self.connected_BS = list()
 
-        self.minimum_band_needed = dict()
+        # self.minimum_band_needed = dict()
 
         self.channels = list()
         self.functional = 1
@@ -31,6 +33,9 @@ class BaseStation:
         for channel in self.channels:
             startmsg += "\n\t{}".format(str(channel))
         return startmsg
+
+    def __repr__(self):
+        return f"BS[{self.id}]: {self.lon=},{self.lat=},{self.radio=},#Channels={len(self.channels)}"
 
     def malfunction(self, new_functional):
         self.functional = new_functional
@@ -66,9 +71,18 @@ class BaseStation:
         :return: true if successfull otherwise false
         """
         # Get best channel to add a device to
-        channel = max(self.channels, key=lambda c: (c.productivity, c.band_left))
-        if not channel.has_band_left():
-            # Best channel cannot accept more connections
+        best_channel = None
+        best_prod = 0
+        best_band_left = 0
+        for channel in self.channels:
+            if channel.has_band_left() and channel.productivity >= best_prod:
+                if channel.band_left > best_band_left:
+                    best_channel = channel
+                    best_band_left = channel.band_left
+                    best_prod = channel.productivity
+
+        channel = best_channel
+        if channel is None:  # No channels for the BS has bandwidth left
             return False
 
         # Calculate the power for the connection with the channel and create the link
@@ -76,9 +90,6 @@ class BaseStation:
             dist = util.distance_2d(self.lon, self.lat, ue.lon, ue.lat)
         params = models.ModelParameters(dist)
         params.distance_3d = util.distance_3d(self.height, ue.height, d2d=dist)
-        if self.radio is util.BaseStationRadioType.NR or self.radio is util.BaseStationRadioType.mmWave:
-            # Set LoS probability
-            params.los = models.los_probability(dist, self.area.area_type, ue.height)
         params.ue_height = ue.height
         params.self_height = self.height
         params.area = self.area.area_type
@@ -87,22 +98,22 @@ class BaseStation:
         params.frequency = channel.frequency
         power = models.received_power(self.radio, channel.power, params)
         if power < util.to_pwr(settings.MINIMUM_POWER):
+            # print(f"power too low: {power=}; min power = {util.to_pwr(settings.MINIMUM_POWER)}")
             return False
         new_link = Link.UE_BS_Link(ue, self, channel, power, dist)
-        self.connected_UE[ue] = new_link
         channel_add = channel.add_device(ue, new_link.bandwidthneeded)
         # Additional test that should never trigger
-        # if device failed to be added to the channel or the BS oveerflows revert and return False
+        # if device failed to be added to the channel or the BS overflows revert and return False
         if not channel_add:
-            del self.connected_UE[ue]
+            print(f"Failed to add {ue=} to {channel=}")
             return False
         if self.overflow:
-            del self.connected_UE[ue]
+            print(f"Adding {ue=} to {channel=} cause bs overflow")
             del channel.devices[ue]
             del channel.desired_band[ue]
             return False
+        self.connected_UE[ue] = new_link
         ue.set_base_station(new_link)
-
         return True
 
     @DeprecationWarning
@@ -138,12 +149,15 @@ class BaseStation:
 
     def create_new_channels(self):
         """
-        Changes channels based on the functionality of the basestation.
+        Reecreates empty channels taking into account that channels can fail
         :return:
         """
+        # Random chance the basestation also has a mmwave antenna
+        if random.random() <= settings.MMWAVE_PROBABILITY:
+            pass
         for channel in self.channels:
+            channel.reset()
             if random.random() >= self.functional:
-                channel.reset()
                 channel.enabled = False
 
     def reset(self):
@@ -151,13 +165,12 @@ class BaseStation:
         self.create_new_channels()
         self.connected_UE.clear()
 
-    # TODO add channels (and ue links?) to the copy
     @DeprecationWarning
     def get_copy(self):
         new_bs = BaseStation(self.id, self.radio, self.lon, self.lat, self.height, self.area)
 
 
-
+# TODO add method for reordering channel bandwidth
 class Channel:
     def __init__(self, frequency, power, enabled=True):
         self.frequency = frequency
@@ -167,6 +180,8 @@ class Channel:
         self.desired_band = dict()
 
         self.enabled = enabled
+        self.max_devices = math.floor(settings.CHANNEL_BANDWIDTHS[0]
+                                      / settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1])
 
     def add_device(self, ue, minimum_bandwidth):
         """
@@ -200,6 +215,7 @@ class Channel:
             if stop_next:
                 # Could not push this device down a band
                 # Should never be reached
+                print("ERROR: Something within channel went horribly wrong")
                 self.devices[device] = 0
                 break
 
@@ -212,6 +228,7 @@ class Channel:
         return settings.CHANNEL_BANDWIDTHS[0] - sum([self.devices[d] for d in self.devices])
 
     def has_band_left(self):
+        return self.enabled and len(self.devices) < self.max_devices
         band_left = self.band_left
         minimum_channel_bandwidth = settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1]
         for device in self.devices:
@@ -241,6 +258,9 @@ class Channel:
             msg += "\n{} Desired Bandwidth:{}, Actual Bandwidth:{}".format(device, self.desired_band[device],
                                                                            self.devices[device])
         return msg
+
+    def __repr__(self):
+        return f"Channel[{self.frequency}]: {self.enabled=}; #devices = {len(self.devices)}"
 
     def __eq__(self, other):
         if not isinstance(other, Channel):

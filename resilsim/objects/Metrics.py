@@ -11,6 +11,7 @@ class Metrics:
         self.active_base_stations = []
         self.snr = []
         self.connectedUE_BS = []
+        self.active_channels = []
 
     def add_metric(self, metrics):
         self.isolated_users.append(metrics[0])
@@ -29,6 +30,8 @@ class Metrics:
 
         self.connectedUE_BS.append(metrics[7])
 
+        self.active_channels.append(metrics[8])
+
     def get_metrics(self):
         return util.avg(self.isolated_users), \
                util.avg(self.received_service), \
@@ -37,7 +40,8 @@ class Metrics:
                util.avg(self.isolated_systems), \
                util.avg(self.active_base_stations), \
                util.avg(self.snr), \
-               util.avg(self.connectedUE_BS)
+               util.avg(self.connectedUE_BS), \
+               util.avg(self.active_channels)
 
     def get_cdf(self):
         return util.cdf(self.isolated_users), \
@@ -47,7 +51,8 @@ class Metrics:
                util.cdf(self.isolated_systems), \
                util.cdf(self.active_base_stations), \
                util.cdf(self.snr), \
-               util.cdf(self.connectedUE_BS)
+               util.cdf(self.connectedUE_BS), \
+               util.cdf(self.active_channels)
 
     def add_metrics_object(self, metric):
         self.isolated_users = self.isolated_users + metric.isolated_users
@@ -58,6 +63,7 @@ class Metrics:
         self.active_base_stations = self.active_base_stations + metric.active_base_stations
         self.snr = self.snr + metric.snr
         self.connectedUE_BS = self.connectedUE_BS + metric.connectedUE_BS
+        self.active_channels = self.active_channels + metric.active_channels
 
     def csv_export(self):
         res = []
@@ -69,19 +75,18 @@ class Metrics:
                         self.isolated_systems[i],
                         self.active_base_stations[i],
                         self.snr[i],
-                        self.connectedUE_BS[i]])
+                        self.connectedUE_BS[i],
+                        self.active_channels[i]])
 
         return res
 
     def __str__(self):
-        return "({},{},{},{},{},{},{},{})".format(util.avg(self.isolated_users),
-                                                  util.avg(self.received_service),
-                                                  util.avg(self.received_service_half),
-                                                  util.avg(self.avg_distance),
-                                                  util.avg(self.isolated_systems),
-                                                  util.avg(self.active_base_stations),
-                                                  util.avg(self.snr),
-                                                  util.avg(self.connectedUE_BS))
-
-
-
+        return "({},{},{},{},{},{},{},{},{})".format(util.avg(self.isolated_users),
+                                                     util.avg(self.received_service),
+                                                     util.avg(self.received_service_half),
+                                                     util.avg(self.avg_distance),
+                                                     util.avg(self.isolated_systems),
+                                                     util.avg(self.active_base_stations),
+                                                     util.avg(self.snr),
+                                                     util.avg(self.connectedUE_BS),
+                                                     util.avg(self.active_channels))

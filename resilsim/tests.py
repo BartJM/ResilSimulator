@@ -1,7 +1,9 @@
 from objects.Link import UE_BS_Link
-from resilsim.objects.BaseStation import BaseStation
-from resilsim.objects.UE import UserEquipment
-from resilsim.util import distance
+import resilsim.objects.BaseStation as BS
+import resilsim.objects.UE as UE
+import resilsim.util as util
+import resilsim.objects.City as City
+import resilsim.settings as settings
 
 import numpy as np
 
@@ -37,5 +39,17 @@ def channel_test():
     print(link.shannon_capacity)
 
 
+def nr_model_test():
+    ue = UE.UserEquipment(1,2,2,100)
+    bs = BS.BaseStation(1,util.BaseStationRadioType.NR,102,102,32,City.Area(0,0,4000,4000))
+    bs.add_channel(773,31)
+
+    bs.add_ue(ue)
+    power = ue.link.power
+    enough = power > util.to_pwr(settings.MINIMUM_POWER)
+    print(f"enough power? {enough}: {power=} with min power = {util.to_pwr(settings.MINIMUM_POWER)}")
+
+
 if __name__ == '__main__':
-    main_test()
+    nr_model_test()
+    #main_test()
