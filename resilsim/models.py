@@ -199,7 +199,7 @@ def los_probability(d_2d, area, ue_h):
         raise TypeError("Unknown area type")
 
 
-def received_power(radio, tx, params):
+def received_power(radio, tx, params, g_tx=settings.G_TX, g_rx=settings.G_RX):
     """
     Calculates the power received
     :param radio: radio type (LTE, 5G NR, mmWave)
@@ -208,7 +208,6 @@ def received_power(radio, tx, params):
     :param params: Model parameters
     :return: power received
     """
-    # TODO change G_TX and G_RX to go through beamforming model (if needed)
     if radio == util.BaseStationRadioType.LTE:
         return util.to_pwr(tx - max(pathloss_lte(params) - settings.G_TX - settings.G_RX, settings.MCL))
     elif radio == util.BaseStationRadioType.NR:
@@ -216,7 +215,7 @@ def received_power(radio, tx, params):
         params.frequency = params.frequency/1000
         # Determine LOS condition and add to parameters for the model
         params.los = los_probability(params.distance_2d, params.area, params.ue_height)
-        return util.to_pwr(tx - pathloss_nr(params) + settings.G_TX + settings.G_RX)
+        return util.to_pwr(tx - pathloss_nr(params) + g_tx + g_rx)
 
 
 def snr(power, noise=settings.SIGNAL_NOISE):
@@ -247,3 +246,10 @@ def shannon_second_param(snr):
     """
     return math.log2(1 + snr)
 
+def beamforming():
+    """
+    Simplistic model for beamforming
+    Assumes direct aim of the antenna thus resulting in a static gain
+    :return:
+    """
+    return settings.BEAMFORMING_GAIN

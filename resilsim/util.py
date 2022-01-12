@@ -297,3 +297,15 @@ def str_to_float(str):
     """
     s = re.sub(r'[^\d.]+', '', str)
     return float(s)
+
+
+# TODO
+def get_angle(bs,ue):
+    """
+    Calculates the angle of the path from BS to UE
+    :param bs:
+    :param ue:
+    :return: angle of path between BS and UE in degree
+    """
+    angle = 0
+    return angle % 360

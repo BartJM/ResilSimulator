@@ -25,6 +25,10 @@ class BaseStation:
         self.channels = list()
         self.functional = 1
 
+        # Add mmWave channel if not RMa area with a probability
+        if self.area is not util.AreaType.RMA and random.random() < settings.MMWAVE_PROBABILITY:
+            self.channels.append(Channel(settings.MMWAVE_FREQUENCY, settings.MMWAVE_POWER, beamforming=True))
+
     def __str__(self):
         lon = self.lon
         lat = self.lat
@@ -75,7 +79,7 @@ class BaseStation:
         best_prod = 0
         best_band_left = 0
         for channel in self.channels:
-            if channel.has_band_left() and channel.productivity >= best_prod:
+            if channel.can_connect(self, ue) and channel.productivity >= best_prod:
                 if channel.band_left > best_band_left:
                     best_channel = channel
                     best_band_left = channel.band_left
@@ -96,12 +100,13 @@ class BaseStation:
         params.avg_building_height = self.area.avg_building_height
         params.avg_street_width = self.area.avg_street_width
         params.frequency = channel.frequency
+        # TODO add beamforming model when needed
         power = models.received_power(self.radio, channel.power, params)
         if power < util.to_pwr(settings.MINIMUM_POWER):
             # print(f"power too low: {power=}; min power = {util.to_pwr(settings.MINIMUM_POWER)}")
             return False
         new_link = Link.UE_BS_Link(ue, self, channel, power, dist)
-        channel_add = channel.add_device(ue, new_link.bandwidthneeded)
+        channel_add = channel.add_device(ue, new_link.bandwidthneeded, self)
         # Additional test that should never trigger
         # if device failed to be added to the channel or the BS overflows revert and return False
         if not channel_add:
@@ -152,9 +157,6 @@ class BaseStation:
         Reecreates empty channels taking into account that channels can fail
         :return:
         """
-        # Random chance the basestation also has a mmwave antenna
-        if random.random() <= settings.MMWAVE_PROBABILITY:
-            pass
         for channel in self.channels:
             channel.reset()
             if random.random() >= self.functional:
@@ -171,19 +173,24 @@ class BaseStation:
 
 
 # TODO add method for reordering channel bandwidth
+# TODO add method for deterniming if a user can connect if beamforming (due to similar angles)
 class Channel:
-    def __init__(self, frequency, power, enabled=True):
+    def __init__(self, frequency, power, enabled=True, beamforming=False):
         self.frequency = frequency
         self.power = power
 
         self.devices = dict()
         self.desired_band = dict()
 
+        self.beamforming: bool = beamforming
+        self.used_angles = []
+
         self.enabled = enabled
         self.max_devices = math.floor(settings.CHANNEL_BANDWIDTHS[0]
                                       / settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1])
 
-    def add_device(self, ue, minimum_bandwidth):
+# TODO add angle to angles list if channel is mmWave
+    def add_device(self, ue, minimum_bandwidth, bs):
         """
         Attempts to add new device to the channel
         :param ue:
@@ -229,18 +236,6 @@ class Channel:
 
     def has_band_left(self):
         return self.enabled and len(self.devices) < self.max_devices
-        band_left = self.band_left
-        minimum_channel_bandwidth = settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1]
-        for device in self.devices:
-            if band_left > minimum_channel_bandwidth:
-                break
-            band_left += self.devices[device] - minimum_channel_bandwidth
-
-        if band_left < minimum_channel_bandwidth:
-            # If there is less bandwidth left than the smallest band no devices can be connected
-            return False
-        else:
-            return True
 
     @property
     def connected_devices(self):
@@ -276,3 +271,22 @@ class Channel:
     def reset(self):
         self.devices.clear()
         self.desired_band.clear()
+        self.used_angles.clear()
+
+    def can_connect(self, bs, ue):
+        """
+        Determines if a user can connect
+        :param bs:
+        :param ue:
+        :return:
+        """
+        if not self.has_band_left():
+            return False
+        if self.beamforming:
+            # determine if the angle (with some margin) is already in use
+            # if not ue can connect otherwise not
+            angle = util.get_angle(bs, ue)
+            for used_angle in self.used_angles:
+                if used_angle - settings.BEAMFORMING_CLEARANCE <= angle <= used_angle + settings.BEAMFORMING_CLEARANCE:
+                    return False
+        return True
