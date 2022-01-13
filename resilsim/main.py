@@ -299,7 +299,6 @@ def load_bs(city):
                 # TODO change area when city contains that data properly
                 h = bs.get('antennes')[0].get("Hoogte")
                 h = util.str_to_float(h)
-                # print(bs.get('GEMNAAM'))
                 new_bs = BSO.BaseStation(bs.get('ID'), radio, bs_lon, bs_lat, h,
                                          City.Area(min_lat, min_lon, max_lat, max_lon))
                 new_bs.area = city.area(bs_lon, bs_lat)

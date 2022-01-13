@@ -16,19 +16,19 @@ def distance(lat1, lon1, lat2, lon2):
     return distance_2d(lat1, lon1, lat2, lon2)
 
     # Based on WSG84?, returns dist in meter?
-    r = 6378.137
-    lat1 = math.radians(lat1)
-    lat2 = math.radians(lat2)
-    lon1 = math.radians(lon1)
-    lon2 = math.radians(lon2)
-
-    diff_lat = lat2 - lat1
-    diff_lon = lon2 - lon1
-
-    a = math.sin(diff_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(diff_lon / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    d = r * c
-    return d * 1000
+#    r = 6378.137
+#    lat1 = math.radians(lat1)
+#    lat2 = math.radians(lat2)
+#    lon1 = math.radians(lon1)
+#    lon2 = math.radians(lon2)
+#
+#    diff_lat = lat2 - lat1
+#    diff_lon = lon2 - lon1
+#
+#    a = math.sin(diff_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(diff_lon / 2) ** 2
+#    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+#    d = r * c
+#    return d * 1000
 
 
 def distance_2d(x1, y1, x2, y2):
@@ -289,13 +289,13 @@ class AreaType(enum.Enum):
     RMA = enum.auto()
 
 
-def str_to_float(str):
+def str_to_float(string):
     """
     Strips all non digit characters from string (except .) and transforms to float
-    :param str:
+    :param string:
     :return:
     """
-    s = re.sub(r'[^\d.]+', '', str)
+    s = re.sub(r'[^\d.]+', '', string)
     return float(s)
 
 

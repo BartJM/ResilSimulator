@@ -27,6 +27,7 @@ class BaseStation:
 
         # Add mmWave channel if not RMa area with a probability
         if self.area is not util.AreaType.RMA and random.random() < settings.MMWAVE_PROBABILITY:
+            print('mmwave')
             self.channels.append(Channel(settings.MMWAVE_FREQUENCY, settings.MMWAVE_POWER, beamforming=True))
 
     def __str__(self):
@@ -132,7 +133,7 @@ class BaseStation:
         self.connected_UE = sorted(self.connected_UE, key=lambda x: x.link.bandwidthneeded, reverse=True)
         for UE in self.connected_UE:
             channel = max(self.channels, key=lambda c: (c.productivity, c.band_left))
-            channel.add_device(UE, UE.link.bandwidthneeded)
+            channel.add_device(UE, UE.link.bandwidthneeded, self)
 
     @property
     def overflow(self):

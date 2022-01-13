@@ -5,7 +5,6 @@ ROOT_DIR = Path(__file__).parent
 
 BS_PATH = os.path.join(ROOT_DIR, "data", "antennas.json")
 CITY_PATH = os.path.join(ROOT_DIR, "data", "city.json")
-# CITY_PATH = os.path.join(ROOT_DIR, "data", "city.csv")
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
@@ -18,7 +17,7 @@ UE_CAPACITY_MAX = 100
 
 SEVERITY_ROUNDS = 10  # 10
 ROUNDS_PER_SEVERITY = 2  # 2
-ROUNDS_PER_USER = 100  # 100
+ROUNDS_PER_USER = 2  # 100
 
 MINIMUM_POWER = -100  # dbW
 
