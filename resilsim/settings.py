@@ -17,9 +17,9 @@ UE_CAPACITY_MAX = 100
 
 SEVERITY_ROUNDS = 10  # 10
 ROUNDS_PER_SEVERITY = 2  # 2
-ROUNDS_PER_USER = 2  # 100
+ROUNDS_PER_USER = 100  # 100
 
-MINIMUM_POWER = -100  # dbW
+MINIMUM_POWER = -80  # dbW
 
 # CITY SPECIFIC PARAMETERS
 # percentage of population using the network
@@ -35,12 +35,11 @@ MCL = 70  # in dbW
 HEIGHT_ABOVE_BUILDINGS = 20  # Average height a BS is above buildings (used for LTE)
 CARRIER_FREQUENCY = 2000  # TODO remove?
 BASE_POWER = 43  # TODO remove
-G_TX = 15  # TODO adapt to be a base number that can be increased by beamforming
+G_TX = 15
 G_RX = 0
 
-CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]  # TODO find the source/find source for this for 5G
-
-SIGNAL_NOISE = -100  # TODO why -100?
+CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]
+SIGNAL_NOISE = -100
 
 # mmWave channel properties
 MMWAVE_PROBABILITY = 0
@@ -53,8 +52,6 @@ BEAMFORMING_CLEARANCE = 10  # degrees
 UE_HEIGHT = 1.5  # height in meters
 
 # RISKS ENABLED
-# TODO move to more logical location?
-
 # if a large disaster occured, for instance a natural disaster or a depending failure
 LARGE_DISASTER = True
 POWER_OUTAGE = False
