@@ -255,3 +255,9 @@ def beamforming():
     :return:
     """
     return settings.BEAMFORMING_GAIN
+
+
+if __name__ == "__main__":
+    params = ModelParameters(1000, util.distance_3d(1.5,30,d2d=1000),True,2000)
+    power = received_power(util.BaseStationRadioType.NR, 31, params)
+    print(util.to_db(power))
