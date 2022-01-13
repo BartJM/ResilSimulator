@@ -17,7 +17,7 @@ UE_CAPACITY_MAX = 100
 
 SEVERITY_ROUNDS = 10  # 10
 ROUNDS_PER_SEVERITY = 2  # 2
-ROUNDS_PER_USER = 100  # 100
+ROUNDS_PER_USER = 2  # 100
 
 MINIMUM_POWER = -80  # dbW
 
@@ -25,7 +25,7 @@ MINIMUM_POWER = -80  # dbW
 # percentage of population using the network
 ACTIVITY = 0.007  # 0.7%
 # Average height of buildings in an area (used for RMa 5G NR only)
-AVG_BUILDING_HEIGHT = 14  # current number based on average two story building
+AVG_BUILDING_HEIGHT = 14  # current number based on average two-story building
 AVG_STREET_WIDTH = 10
 
 # BASE STATION PROPERTIES
@@ -52,7 +52,7 @@ BEAMFORMING_CLEARANCE = 10  # degrees
 UE_HEIGHT = 1.5  # height in meters
 
 # RISKS ENABLED
-# if a large disaster occured, for instance a natural disaster or a depending failure
+# if a large disaster occurred, for instance a natural disaster or a depending failure
 LARGE_DISASTER = True
 POWER_OUTAGE = False
 RADIUS_PER_SEVERITY = 1000

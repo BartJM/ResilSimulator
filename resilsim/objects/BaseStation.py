@@ -7,7 +7,7 @@ import resilsim.util as util
 import resilsim.models as models
 import random
 
-
+#TODO change mmwave workings
 class BaseStation:
     def __init__(self, id, radio, lon, lat, height, area):
         self.id = id
@@ -28,7 +28,7 @@ class BaseStation:
         # Add mmWave channel if not RMa area with a probability
         if self.area is not util.AreaType.RMA and random.random() < settings.MMWAVE_PROBABILITY:
             print('mmwave')
-            self.channels.append(Channel(settings.MMWAVE_FREQUENCY, settings.MMWAVE_POWER, beamforming=True))
+            self.channels.append(Channel(settings.MMWAVE_FREQUENCY, settings.MMWAVE_POWER, self, beamforming=True))
 
     def __str__(self):
         lon = self.lon
@@ -60,7 +60,7 @@ class BaseStation:
         for c in self.channels:
             if c.frequency == frequency:
                 return
-        channel = Channel(frequency, power)
+        channel = Channel(frequency, power, self)
         self.channels.append(channel)
 
     def __add__(self, other):
@@ -176,7 +176,7 @@ class BaseStation:
 # TODO add method for reordering channel bandwidth
 # TODO add method for deterniming if a user can connect if beamforming (due to similar angles)
 class Channel:
-    def __init__(self, frequency, power, enabled=True, beamforming=False):
+    def __init__(self, frequency, power, bs, enabled=True, beamforming=False):
         self.frequency = frequency
         self.power = power
 
@@ -185,6 +185,8 @@ class Channel:
 
         self.beamforming: bool = beamforming
         self.used_angles = []
+
+        self.bs = bs
 
         self.enabled = enabled
         self.max_devices = math.floor(settings.CHANNEL_BANDWIDTHS[0]
@@ -199,7 +201,7 @@ class Channel:
         :return: True if successful otherwise False
         """
         # Check if device can be added
-        if not self.has_band_left():
+        if not self.can_connect(bs, ue):
             return False
         # Add device
         self.devices[ue] = minimum_bandwidth

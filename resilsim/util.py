@@ -274,6 +274,7 @@ class BaseStationRadioType(enum.Enum):
     """
     NR = enum.auto()
     LTE = enum.auto()
+    MMWAVE = enum.auto()
 
 
 @enum.unique

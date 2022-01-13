@@ -280,6 +280,7 @@ def load_cities():
 
 
 # TODO add BSs for area larger than city?
+# TODO create mmwave basestations
 def load_bs(city):
     min_lat, min_lon, max_lat, max_lon = city.min_lat, city.min_lon, city.max_lat, city.max_lon
     all_basestations = list()
