@@ -305,7 +305,7 @@ def load_bs(city):
                 new_bs.area = city.area(bs_lon, bs_lat)
                 for antenna in bs.get("antennes"):
                     f = util.str_to_float(antenna.get("Frequentie"))
-                    p = util.str_to_float(antenna.get("Vermogen"))
+                    p = util.dbw_to_dbm(util.str_to_float(antenna.get("Vermogen")))
                     new_bs.add_channel(f, p)
                 all_basestations.append(new_bs)
 

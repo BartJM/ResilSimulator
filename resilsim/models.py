@@ -205,9 +205,9 @@ def received_power(radio, tx, params, g_tx=settings.G_TX, g_rx=settings.G_RX):
     Calculates the power received
     :param radio: radio type (LTE, 5G NR, mmWave)
     :type radio: util.BaseStationRadioType
-    :param tx: transmitted power
+    :param tx: transmitted power in dBm
     :param params: Model parameters
-    :return: power received
+    :return: power received in mW
     """
     if radio == util.BaseStationRadioType.LTE:
         return util.to_pwr(tx - max(pathloss_lte(params) - settings.G_TX - settings.G_RX, settings.MCL))
@@ -222,9 +222,9 @@ def received_power(radio, tx, params, g_tx=settings.G_TX, g_rx=settings.G_RX):
 def snr(power, noise=settings.SIGNAL_NOISE):
     """
     Calculates signal to noise ratio
-    :param power: power of the signal in W
-    :param noise: noise in dbW
-    :return: signal to noise ratio
+    :param power: power of the signal in mW
+    :param noise: noise in dbm
+    :return: signal to noise ratio in db
     """
     return power / util.to_pwr(noise)
 
@@ -242,7 +242,7 @@ def shannon_capacity(snr, bandwidth):
 def shannon_second_param(snr):
     """
     Calculates the second parameter of the shannon capacity formula
-    :param snr: signal-to-noise ratiio
+    :param snr: signal-to-noise ratio
     :return:
     """
     return math.log2(1 + snr)
@@ -258,6 +258,6 @@ def beamforming():
 
 
 if __name__ == "__main__":
-    params = ModelParameters(1000, util.distance_3d(1.5,30,d2d=1000),True,2000)
-    power = received_power(util.BaseStationRadioType.NR, 31, params)
+    params = ModelParameters(500, util.distance_3d(1.5,30,d2d=500),True,26000)
+    power = received_power(util.BaseStationRadioType.NR, 60, params)
     print(util.to_db(power))

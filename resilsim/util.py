@@ -159,12 +159,31 @@ def connected_ue_bs(base_stations):
 
 
 def to_pwr(db):
+    """
+    Convert dBm to mW
+    :param db: Decibel dBm
+    :return: power in mW
+    """
     return 10 ** (db / 10)
 
 
 def to_db(pwr):
+    """
+    convert value to dB scale
+    convert mW to dBm
+    :param pwr: value to convert
+    :return: dB
+    """
     return 10 * math.log10(pwr)
 
+
+def dbw_to_dbm(pwr):
+    """
+    Converts dBW power to dBm power
+    :param pwr: power in dBW
+    :return:
+    """
+    return pwr + 30
 
 def avg(lst):
     length = 0
@@ -310,3 +329,6 @@ def get_angle(bs,ue):
     """
     angle = 0
     return angle % 360
+
+if __name__ == "__main__":
+    print(to_db(10))

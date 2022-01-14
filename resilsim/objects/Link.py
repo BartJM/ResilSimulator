@@ -70,6 +70,7 @@ class UE_BS_Link:
 
     @property
     def snr(self):
+
         return models.snr(self.power)
 
     def __str__(self):
