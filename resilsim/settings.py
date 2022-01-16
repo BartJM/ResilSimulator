@@ -8,7 +8,7 @@ CITY_PATH = os.path.join(ROOT_DIR, "data", "city.json")
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
-SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster.csv")
+SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_with_powerloss.csv")
 
 AMOUNT_THREADS = None
 
@@ -54,7 +54,7 @@ UE_HEIGHT = 1.5  # height in meters
 # RISKS ENABLED
 # if a large disaster occurred, for instance a natural disaster or a depending failure
 LARGE_DISASTER = True
-POWER_OUTAGE = False
+POWER_OUTAGE = True
 RADIUS_PER_SEVERITY = 1000
 
 # malicious attacks on a certain region, for instance a DDoS
