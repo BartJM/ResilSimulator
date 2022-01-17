@@ -16,6 +16,8 @@ def distance(lat1, lon1, lat2, lon2):
     return distance_2d(lat1, lon1, lat2, lon2)
 
     # Based on WSG84?, returns dist in meter?
+
+
 #    r = 6378.137
 #    lat1 = math.radians(lat1)
 #    lat2 = math.radians(lat2)
@@ -135,7 +137,7 @@ def snr_averages(ue):
     return sum(snrs) / len(snrs) if len(snrs) > 0 else 0
 
 
-def active_base_stations(bs): # TODO make nicer (if BS has channels available set as active)
+def active_base_stations(bs):  # TODO make nicer (if BS has channels available set as active)
     ab = 0
     for b in bs:
         for c in b.channels:
@@ -143,6 +145,8 @@ def active_base_stations(bs): # TODO make nicer (if BS has channels available se
                 ab += 1
                 break
     return ab
+
+
 #    return sum([1 if bs.functional >= 0.2 else 0 for bs in bs])
 
 def active_channels(bs):
@@ -184,6 +188,7 @@ def dbw_to_dbm(pwr):
     :return:
     """
     return pwr + 30
+
 
 def avg(lst):
     length = 0
@@ -293,7 +298,6 @@ class BaseStationRadioType(enum.Enum):
     """
     NR = enum.auto()
     LTE = enum.auto()
-    MMWAVE = enum.auto()
 
 
 @enum.unique
@@ -319,16 +323,23 @@ def str_to_float(string):
     return float(s)
 
 
-# TODO
-def get_angle(bs,ue):
+def get_angle(x1, y1, x2, y2):
     """
-    Calculates the angle of the path from BS to UE
-    :param bs:
-    :param ue:
-    :return: angle of path between BS and UE in degree
+    Calculates the angle between two points with the x-axis as reference
+    The second point is set as 0 point
     """
-    angle = 0
-    return angle % 360
+    x = x1 - x2
+    y = y1 - y2
+    angle = math.atan2(y, x)
+    return math.degrees(angle)
+
+
+def test():
+    print(get_angle(1, 1, 0, 0))  # should be 45 degree (pi/4 rad)
+    print(get_angle(-1, 1, 0, 0))  # (3pi/4 rad) 135
+    print(get_angle(1, -1, 0, 0))  # (-pi/4 rad or 7pi/4 rad) -45
+    print(get_angle(2, 2, 1, 1))  # should be 45 degree (pi/4 rad)
+
 
 if __name__ == "__main__":
-    print(to_db(10))
+    test()
