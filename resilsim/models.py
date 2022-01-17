@@ -11,7 +11,7 @@ class ModelParameters:
     distance_2d: float
     distance_3d: float = None
     los: bool = None
-    frequency: float = settings.CARRIER_FREQUENCY # in MHz
+    frequency: float = settings.CARRIER_FREQUENCY  # in MHz
     bs_height: float = settings.HEIGHT_ABOVE_BUILDINGS
     ue_height: float = settings.UE_HEIGHT
     area: util.AreaType = util.AreaType.UMA
@@ -41,7 +41,8 @@ def pathloss_nr(params: ModelParameters):
         else:
             pl_nlos = pathloss_urban_nlos(params.distance_3d, params.frequency, params.ue_height,
                                           13.54, 39.08, 20, 0.6)
-            return max(pl_los, pl_nlos) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(6)
+            return max(pl_los, pl_nlos) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(
+                6)
     elif params.area == util.AreaType.UMI:
         pl_los = pathloss_urban_los(params.distance_2d, params.distance_3d, params.frequency, params.ue_height,
                                     params.bs_height, 32.4, 21, 9.5)
@@ -50,7 +51,8 @@ def pathloss_nr(params: ModelParameters):
         else:
             pl_nlos = pathloss_urban_nlos(params.distance_3d, params.frequency, params.ue_height,
                                           22.4, 35.3, 21.3, 0.3)
-            return max(pl_los, pl_nlos) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(7.82)
+            return max(pl_los, pl_nlos) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(
+                7.82)
     elif params.area == util.AreaType.RMA:
         if params.los:
             if params.distance_2d < 10:
@@ -61,7 +63,9 @@ def pathloss_nr(params: ModelParameters):
             elif params.distance_2d <= 10000:
                 bp = breakpoint_distance(params.frequency, params.bs_height)
                 pl1 = pathloss_rma_los_pl1(bp, params.avg_building_height, params.frequency)
-                return pl1 + 40 * np.log10(params.distance_3d / bp) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(6)
+                return pl1 + 40 * np.log10(params.distance_3d / bp) + atmospheric_attenuation(params.frequency,
+                                                                                              params.distance_2d) + shadow_fading(
+                    6)
             else:
                 raise ValueError("LoS model for RMa does not function for d_2D>10km")
         else:  # NLoS
@@ -76,7 +80,8 @@ def pathloss_nr(params: ModelParameters):
                 p = params.__copy__()
                 p.los = True
                 los_pl = pathloss_nr(p)
-                return max(los_pl, nlos_pl) + atmospheric_attenuation(params.frequency, params.distance_2d) + shadow_fading(8)
+                return max(los_pl, nlos_pl) + atmospheric_attenuation(params.frequency,
+                                                                      params.distance_2d) + shadow_fading(8)
             else:
                 raise ValueError("NLoS model for RMa does not function for d_2D>5km")
     else:
@@ -154,7 +159,7 @@ def breakpoint_distance(frequency, bs_height, ue_height=settings.UE_HEIGHT):
     return 2 * math.pi * bs_height * ue_height * frequency / c
 
 
-#TODO
+# TODO
 def atmospheric_attenuation(frequency, distance):
     return 0.0
 
@@ -213,7 +218,7 @@ def received_power(radio, tx, params, g_tx=settings.G_TX, g_rx=settings.G_RX):
         return util.to_pwr(tx - max(pathloss_lte(params) - settings.G_TX - settings.G_RX, settings.MCL))
     elif radio == util.BaseStationRadioType.NR:
         # ModelParams contains frequency in MHz while the models use GHz, change the value here
-        params.frequency = params.frequency/1000
+        params.frequency = params.frequency / 1000
         # Determine LOS condition and add to parameters for the model
         params.los = los_probability(params.distance_2d, params.area, params.ue_height)
         return util.to_pwr(tx - pathloss_nr(params) + g_tx + g_rx)
@@ -257,7 +262,11 @@ def beamforming():
     return settings.BEAMFORMING_GAIN
 
 
+def test():
+    params = ModelParameters(500, util.distance_3d(1.5, 30, d2d=500), True, 26000)
+    pwr = received_power(util.BaseStationRadioType.NR, 60, params)
+    print(util.to_db(pwr))
+
+
 if __name__ == "__main__":
-    params = ModelParameters(500, util.distance_3d(1.5,30,d2d=500),True,26000)
-    power = received_power(util.BaseStationRadioType.NR, 60, params)
-    print(util.to_db(power))
+    test()

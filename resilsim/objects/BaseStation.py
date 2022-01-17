@@ -7,7 +7,8 @@ import resilsim.util as util
 import resilsim.models as models
 import random
 
-#TODO change mmwave workings
+
+# TODO change mmwave workings
 class BaseStation:
     def __init__(self, id, radio, lon, lat, height, area):
         self.id = id
@@ -27,7 +28,6 @@ class BaseStation:
 
         # Add mmWave channel if not RMa area with a probability
         if self.area is not util.AreaType.RMA and random.random() < settings.MMWAVE_PROBABILITY:
-            print('mmwave')
             self.channels.append(Channel(settings.MMWAVE_FREQUENCY, settings.MMWAVE_POWER, self, beamforming=True))
 
     def __str__(self):
@@ -192,7 +192,7 @@ class Channel:
         self.max_devices = math.floor(settings.CHANNEL_BANDWIDTHS[0]
                                       / settings.CHANNEL_BANDWIDTHS[len(settings.CHANNEL_BANDWIDTHS) - 1])
 
-# TODO add angle to angles list if channel is mmWave
+    # TODO add angle to angles list if channel is mmWave
     def add_device(self, ue, minimum_bandwidth, bs):
         """
         Attempts to add new device to the channel
@@ -204,8 +204,14 @@ class Channel:
         if not self.can_connect(bs, ue):
             return False
         # Add device
-        self.devices[ue] = minimum_bandwidth
         self.desired_band[ue] = minimum_bandwidth
+        if self.beamforming:
+            # If beamforming devices do not need to be reshuffeled.
+            # If a device can be added for the angle it gets all bandwidth and is the only device within the angle
+            self.devices[ue] = settings.CHANNEL_BANDWIDTHS[0]
+            self.used_angles.append(util.get_angle(ue.lat, ue.lon, bs.lat, bs.lon))
+            return True
+        self.devices[ue] = minimum_bandwidth
         while self.band_left < 0:
             # Push device with maximum band down
             device = max(self.devices, key=lambda d: self.devices[d])
@@ -235,9 +241,14 @@ class Channel:
 
     @property
     def band_left(self):
+        if self.beamforming:
+            # Beamforming has one beam per user with the full bandwidth available (for each angle).
+            return settings.CHANNEL_BANDWIDTHS[0]
         return settings.CHANNEL_BANDWIDTHS[0] - sum([self.devices[d] for d in self.devices])
 
     def has_band_left(self):
+        if self.beamforming:
+            return self.enabled
         return self.enabled and len(self.devices) < self.max_devices
 
     @property
@@ -248,7 +259,7 @@ class Channel:
     def productivity(self):
         if len(self.devices) == 0:
             return 1
-        return sum(self.devices.values()) / sum(self.desired_band.values())
+        return min(sum(self.devices.values()) / sum(self.desired_band.values()), 1)
 
     def __str__(self):
         msg = "Channel[{}]:".format(self.frequency)
@@ -283,13 +294,15 @@ class Channel:
         :param ue:
         :return:
         """
-        if not self.has_band_left():
+        if not self.enabled:
             return False
         if self.beamforming:
             # determine if the angle (with some margin) is already in use
             # if not ue can connect otherwise not
-            angle = util.get_angle(bs, ue)
+            angle = util.get_angle(ue.lat, ue.lon, bs.lat, bs.lon)
             for used_angle in self.used_angles:
-                if used_angle - settings.BEAMFORMING_CLEARANCE <= angle <= used_angle + settings.BEAMFORMING_CLEARANCE:
+                if used_angle - settings.BEAMFORMING_CLEARANCE / 2 <= angle <= used_angle + settings.BEAMFORMING_CLEARANCE / 2:
                     return False
+        else:
+            return self.has_band_left()
         return True

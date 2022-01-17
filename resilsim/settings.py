@@ -8,16 +8,16 @@ CITY_PATH = os.path.join(ROOT_DIR, "data", "city.json")
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
-SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_with_powerloss.csv")
+SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_mmwave_50.csv")
 
 AMOUNT_THREADS = None
 
 UE_CAPACITY_MIN = 10
 UE_CAPACITY_MAX = 100
 
-SEVERITY_ROUNDS = 10  # 10
-ROUNDS_PER_SEVERITY = 4  # 2
-ROUNDS_PER_USER = 75  # 100
+SEVERITY_ROUNDS = 10
+ROUNDS_PER_SEVERITY = 4
+ROUNDS_PER_USER = 75
 
 MINIMUM_POWER = -80  # dbm
 
@@ -42,10 +42,10 @@ CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]
 SIGNAL_NOISE = -100  # dBm
 
 # mmWave channel properties
-MMWAVE_PROBABILITY = 0
+MMWAVE_PROBABILITY = 0.5
 MMWAVE_FREQUENCY = 26000  # 26GHz in MHz
 MMWAVE_POWER = 60  # dBm
-BEAMFORMING_GAIN = 30  # dB TODO get value
+BEAMFORMING_GAIN = G_TX + 10  # dB
 BEAMFORMING_CLEARANCE = 10  # degrees
 
 # User equipment properties
@@ -54,7 +54,7 @@ UE_HEIGHT = 1.5  # height in meters
 # RISKS ENABLED
 # if a large disaster occurred, for instance a natural disaster or a depending failure
 LARGE_DISASTER = True
-POWER_OUTAGE = True
+POWER_OUTAGE = False
 RADIUS_PER_SEVERITY = 1000
 
 # malicious attacks on a certain region, for instance a DDoS
