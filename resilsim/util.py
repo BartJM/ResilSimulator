@@ -238,7 +238,8 @@ def get_x_values():
 def create_plot(city_results):
     x_values, unit = get_x_values()
 
-    for z in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
+    #    for z in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
+    for z in [0, 1]:
         fig = go.Figure()
         for city in city_results:
             results = [m.get_metrics() for m in city_results[city]]
@@ -254,8 +255,12 @@ def create_plot(city_results):
                     visible=True
                 )
             ))
-        fig.update_layout(xaxis_title=unit, yaxis_title=get_unit(z),
-                          legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+        if z == 0:
+            fig.update_layout(xaxis_title=unit, yaxis_title=get_unit(z),
+                              legend=dict(yanchor="top", y=0.95, xanchor="left", x=0.05))
+        else:
+            fig.update_layout(xaxis_title=unit, yaxis_title=get_unit(z),
+                              legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
         fig.show()
 
     pass
