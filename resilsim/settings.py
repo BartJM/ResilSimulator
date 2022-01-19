@@ -46,7 +46,7 @@ MMWAVE_PROBABILITY = 0.5
 MMWAVE_FREQUENCY = 26000  # 26GHz in MHz
 MMWAVE_POWER = 60  # dBm
 BEAMFORMING_GAIN = G_TX + 10  # dB
-BEAMFORMING_CLEARANCE = 10  # degrees
+BEAMFORMING_CLEARANCE = 10  # degrees around the beam
 
 # User equipment properties
 UE_HEIGHT = 1.5  # height in meters
