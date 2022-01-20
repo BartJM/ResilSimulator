@@ -4,6 +4,8 @@ from objects.Metrics import Metrics
 import resilsim.settings as settings
 import csv
 import json
+import plotly.graph_objects as go
+import os
 
 
 def load():
@@ -59,6 +61,100 @@ def load():
     print("Plotting results")
     util.create_plot(city_results)
 
+def create_plot_mmwave_comp():
+#    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
+    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50)]
+
+    # Get all city names
+    all_cities = []
+    with open(settings.CITY_PATH) as f:
+        cities = json.load(f)
+        for city in cities:
+            all_cities.append(city.get('name'))
+
+    results = dict()
+
+    for mmwave_name in files:
+        name = os.path.join(settings.ROOT_DIR, 'results', mmwave_name[0])
+        print(f"importing file {name}")
+        sub_city_results = dict()
+
+        with open(name, newline='') as f:
+            filereader = csv.DictReader(f)
+            for row in filereader:
+                city = str(row["city"])
+                if city not in all_cities:
+                    continue
+                severity = int(row["severity"])
+                isolated_users = float(row["isolated_users"]) if row["isolated_users"] != '' else None
+                received_service = float(row["received_service"]) if row["received_service"] != '' else None
+                received_service_half = float(row["received_service_half"]) if row["received_service_half"] != '' else None
+                avg_distance = float(row["avg_distance"]) if row["avg_distance"] != '' else None
+                isolated_systems = float(row["isolated_systems"]) if row["isolated_users"] != '' else None
+                active_base_stations = float(row["active_base_stations"]) if row["active_base_stations"] else None
+                avg_snr = float(row["avg_snr"]) if row["avg_snr"] else None
+                connected_UE_BS = float(row["connected_UE_BS"]) if row["connected_UE_BS"] else None
+                active_channels = float(row["active_channels"]) if row["active_channels"] else None
+
+                if city not in sub_city_results:
+                    sub_city_results[city] = []
+
+                while severity >= len(sub_city_results[city]):
+                    sub_city_results[city].append(Metrics())
+
+                sub_city_results[city][severity].add_metric((isolated_users,
+                                                             received_service,
+                                                             received_service_half,
+                                                             avg_distance,
+                                                             isolated_systems,
+                                                             active_base_stations,
+                                                             avg_snr,
+                                                             connected_UE_BS,
+                                                             active_channels))
+
+        city_results = dict()
+        for city in sub_city_results:
+            city_results[City(city,0,0,0,0,0)] = sub_city_results[city]
+        results[mmwave_name[1]] = city_results
+
+    print("Plotting results")
+
+    # plot the stuff
+    x_values, unit = util.get_x_values()
+
+    for city in all_cities:
+        for z in [0, 1]:
+            fig = go.Figure()
+            for r in results.keys():  # loop over mmwave deployments
+                city_results = results.get(r)
+                for c in city_results:  # loop over cities
+                    if c.name == city:
+                        metrics = [m.get_metrics() for m in city_results[c]]
+                        errors = [m.get_cdf() for m in city_results[c]]
+                        fig.add_trace(go.Scatter(
+                            x=x_values,
+                            y=[m[z] for m in metrics if m[z] is not None],
+                            mode='lines+markers',
+                            name=f"{r}%",
+                            error_y=dict(
+                                type='data',
+                                array=[e[z] for e in errors if e[z] is not None],
+                                visible=True
+                            )
+                        ))
+            if z == 0:
+                fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
+                                  legend=dict(yanchor="top", y=0.95, xanchor="left", x=0.05))
+            else:
+                fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
+                                  legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+            if not os.path.exists("images"):
+                os.mkdir("images")
+            nt = 'satisfaction' if z == 1 else 'isolated'
+            fig.write_image(f'images/disaster_{city}_{nt}.pdf')
+            fig.update_layout(title=city)
+            fig.show()
 
 if __name__ == '__main__':
-    load()
+    create_plot_mmwave_comp()
+#    load()
