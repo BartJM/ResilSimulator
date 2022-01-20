@@ -63,7 +63,7 @@ def load():
 
 def create_plot_mmwave_comp():
 #    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
-    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50)]
+    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
 
     # Get all city names
     all_cities = []
@@ -122,9 +122,11 @@ def create_plot_mmwave_comp():
     # plot the stuff
     x_values, unit = util.get_x_values()
 
-    for city in all_cities:
-        for z in [0, 1]:
-            fig = go.Figure()
+
+    for z in [0, 1]:
+#        fig = go.Figure()  # when all cities in one fig
+        for city in all_cities:
+            fig = go.Figure()  # when one city per fig
             for r in results.keys():  # loop over mmwave deployments
                 city_results = results.get(r)
                 for c in city_results:  # loop over cities
@@ -135,7 +137,7 @@ def create_plot_mmwave_comp():
                             x=x_values,
                             y=[m[z] for m in metrics if m[z] is not None],
                             mode='lines+markers',
-                            name=f"{r}%",
+                            name=f"{city}: {r}%",
                             error_y=dict(
                                 type='data',
                                 array=[e[z] for e in errors if e[z] is not None],
@@ -150,10 +152,11 @@ def create_plot_mmwave_comp():
                                   legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
             if not os.path.exists("images"):
                 os.mkdir("images")
-            nt = 'satisfaction' if z == 1 else 'isolated'
-            fig.write_image(f'images/disaster_{city}_{nt}.pdf')
+        #    nt = 'satisfaction' if z == 1 else 'isolated'
+        #    fig.write_image(f'images/disaster_{city}_{nt}.pdf')
             fig.update_layout(title=city)
-            fig.show()
+            fig.show()  # when one city per fig
+#        fig.show()  # when all cities in one fig
 
 if __name__ == '__main__':
     create_plot_mmwave_comp()
