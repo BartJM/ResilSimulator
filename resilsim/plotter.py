@@ -6,11 +6,12 @@ import csv
 import json
 import plotly.graph_objects as go
 import os
-
+import plotly.io as pio
+pio.kaleido.scope.mathjax = None
 
 def load():
 
-    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
+#    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
     file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
 
     # Get all city names
@@ -90,12 +91,14 @@ def load():
         else:
             fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
                               legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+        fig.update_layout(xaxis_title_font_size=20, yaxis_title_font_size=20)
 
         fig.show()
         if not os.path.exists("images"):
             os.mkdir("images")
         nt = 'satisfaction' if z == 1 else 'isolated'
-        fig.write_image(f'images/disaster_{nt}.pdf')
+#        fig.write_image(f'images/disaster_{nt}.pdf')
+        fig.write_image(f'images/disaster_power_{nt}.pdf')
 
 
 def create_plot_mmwave_comp():
@@ -188,16 +191,18 @@ def create_plot_mmwave_comp():
             else:
                 fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
                                   legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+            fig.update_layout(xaxis_title_font_size=20, yaxis_title_font_size=20)
+
             if not os.path.exists("images"):
                 os.mkdir("images")
             nt = 'satisfaction' if z == 1 else 'isolated'
-            fig.write_image(f'images/disaster_{city}_{nt}.pdf')
-        #    fig.write_image(f'images/disaster_power_{city}_{nt}.pdf')
+            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
+        #    fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
 
-#            fig.update_layout(title=city)
-#            fig.show()  # when one city per fig
+            fig.update_layout(title=city)
+            fig.show()  # when one city per fig
 #        fig.show()  # when all cities in one fig
 
 if __name__ == '__main__':
-    create_plot_mmwave_comp()
-#    load()
+#    create_plot_mmwave_comp()
+    load()
