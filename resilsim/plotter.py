@@ -9,6 +9,10 @@ import os
 
 
 def load():
+
+    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
+    file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
+
     # Get all city names
     all_cities = []
     with open(settings.CITY_PATH) as f:
@@ -19,7 +23,7 @@ def load():
     sub_city_results = dict()
 
     print("importing file")
-    with open(settings.SAVE_CSV_PATH,newline='') as f:
+    with open(file, newline='') as f:
 
         filereader = csv.DictReader(f)
         for row in filereader:
@@ -59,13 +63,47 @@ def load():
         city_results[City(city,0,0,0,0,0)] = sub_city_results[city]
 
     print("Plotting results")
-    util.create_plot(city_results)
+#    util.create_plot(city_results)
+
+    x_values, unit = util.get_x_values()
+
+    #    for z in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
+    for z in [0, 1]:
+        fig = go.Figure()
+        for city in city_results:
+            results = [m.get_metrics() for m in city_results[city]]
+            errors = [m.get_cdf() for m in city_results[city]]
+            fig.add_trace(go.Scatter(
+                x=x_values,
+                y=[r[z] for r in results if r[z] is not None],
+                mode='lines+markers',
+                name=str(city),
+                error_y=dict(
+                    type='data',
+                    array=[e[z] for e in errors if e[z] is not None],
+                    visible=True
+                )
+            ))
+        if z == 0:
+            fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
+                              legend=dict(yanchor="top", y=0.95, xanchor="left", x=0.05))
+        else:
+            fig.update_layout(xaxis_title=unit, yaxis_title=util.get_unit(z),
+                              legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
+
+        fig.show()
+        if not os.path.exists("images"):
+            os.mkdir("images")
+        nt = 'satisfaction' if z == 1 else 'isolated'
+        fig.write_image(f'images/disaster_{nt}.pdf')
+
 
 def create_plot_mmwave_comp():
 #    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
     files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
+#    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
 
-    # Get all city names
+# Get all city names
     all_cities = []
     with open(settings.CITY_PATH) as f:
         cities = json.load(f)
@@ -152,10 +190,12 @@ def create_plot_mmwave_comp():
                                   legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
             if not os.path.exists("images"):
                 os.mkdir("images")
-        #    nt = 'satisfaction' if z == 1 else 'isolated'
-        #    fig.write_image(f'images/disaster_{city}_{nt}.pdf')
-            fig.update_layout(title=city)
-            fig.show()  # when one city per fig
+            nt = 'satisfaction' if z == 1 else 'isolated'
+            fig.write_image(f'images/disaster_{city}_{nt}.pdf')
+        #    fig.write_image(f'images/disaster_power_{city}_{nt}.pdf')
+
+#            fig.update_layout(title=city)
+#            fig.show()  # when one city per fig
 #        fig.show()  # when all cities in one fig
 
 if __name__ == '__main__':
