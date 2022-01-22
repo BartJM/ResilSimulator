@@ -8,7 +8,7 @@ CITY_PATH = os.path.join(ROOT_DIR, "data", "city.json")
 
 SAVE_IN_CSV = True
 CREATE_PLOT = False
-SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_power_mmwave_50.csv")
+SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_power_mmwave_100.csv")
 
 AMOUNT_THREADS = None
 
@@ -42,7 +42,7 @@ CHANNEL_BANDWIDTHS = [20, 15, 10, 5, 3, 1.4]
 SIGNAL_NOISE = -100  # dBm
 
 # mmWave channel properties
-MMWAVE_PROBABILITY = 0.5
+MMWAVE_PROBABILITY = 1
 MMWAVE_FREQUENCY = 26000  # 26GHz in MHz
 MMWAVE_POWER = 60  # dBm
 BEAMFORMING_GAIN = G_TX + 10  # dB
