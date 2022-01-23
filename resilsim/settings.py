@@ -6,7 +6,7 @@ ROOT_DIR = Path(__file__).parent
 BS_PATH = os.path.join(ROOT_DIR, "data", "antennas.json")
 CITY_PATH = os.path.join(ROOT_DIR, "data", "city.json")
 
-SAVE_IN_CSV = True
+SAVE_IN_CSV = False
 CREATE_PLOT = False
 SAVE_CSV_PATH = os.path.join(ROOT_DIR, "results", "disaster_power_mmwave_100.csv")
 
