@@ -103,8 +103,8 @@ def load():
 
 def create_plot_mmwave_comp():
 #    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
-    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
-#    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
+#    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
+    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
 
 # Get all city names
     all_cities = []
@@ -196,13 +196,13 @@ def create_plot_mmwave_comp():
             if not os.path.exists("images"):
                 os.mkdir("images")
             nt = 'satisfaction' if z == 1 else 'isolated'
-            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
-        #    fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
+#            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
+            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
 
             fig.update_layout(title=city)
             fig.show()  # when one city per fig
 #        fig.show()  # when all cities in one fig
 
 if __name__ == '__main__':
-#    create_plot_mmwave_comp()
-    load()
+    create_plot_mmwave_comp()
+#    load()
