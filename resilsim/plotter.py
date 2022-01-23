@@ -11,8 +11,8 @@ pio.kaleido.scope.mathjax = None
 
 def load():
 
-#    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
-    file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
+    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
+#    file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
 
     # Get all city names
     all_cities = []
@@ -76,7 +76,7 @@ def load():
             errors = [m.get_cdf() for m in city_results[city]]
             fig.add_trace(go.Scatter(
                 x=x_values,
-                y=[r[z] for r in results if r[z] is not None],
+                y=[100*r[z] for r in results if r[z] is not None],
                 mode='lines+markers',
                 name=str(city),
                 error_y=dict(
@@ -97,14 +97,14 @@ def load():
         if not os.path.exists("images"):
             os.mkdir("images")
         nt = 'satisfaction' if z == 1 else 'isolated'
-#        fig.write_image(f'images/disaster_{nt}.pdf')
-        fig.write_image(f'images/disaster_power_{nt}.pdf')
+        fig.write_image(f'images/disaster_{nt}.pdf')
+#        fig.write_image(f'images/disaster_power_{nt}.pdf')
 
 
 def create_plot_mmwave_comp():
 #    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
-#    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
-    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
+    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
+#    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
 
 # Get all city names
     all_cities = []
@@ -176,7 +176,7 @@ def create_plot_mmwave_comp():
                         errors = [m.get_cdf() for m in city_results[c]]
                         fig.add_trace(go.Scatter(
                             x=x_values,
-                            y=[m[z] for m in metrics if m[z] is not None],
+                            y=[100*m[z] for m in metrics if m[z] is not None],
                             mode='lines+markers',
                             name=f"{city}: {r}%",
                             error_y=dict(
@@ -196,8 +196,8 @@ def create_plot_mmwave_comp():
             if not os.path.exists("images"):
                 os.mkdir("images")
             nt = 'satisfaction' if z == 1 else 'isolated'
-#            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
-            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
+            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
+#            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
 
             fig.update_layout(title=city)
             fig.show()  # when one city per fig
@@ -205,4 +205,4 @@ def create_plot_mmwave_comp():
 
 if __name__ == '__main__':
     create_plot_mmwave_comp()
-#    load()
+    load()
