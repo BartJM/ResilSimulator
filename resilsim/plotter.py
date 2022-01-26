@@ -81,7 +81,7 @@ def load():
                 name=str(city),
                 error_y=dict(
                     type='data',
-                    array=[e[z] for e in errors if e[z] is not None],
+                    array=[100*e[z] for e in errors if e[z] is not None],
                     visible=True
                 )
             ))
@@ -181,7 +181,7 @@ def create_plot_mmwave_comp():
                             name=f"{city}: {r}%",
                             error_y=dict(
                                 type='data',
-                                array=[e[z] for e in errors if e[z] is not None],
+                                array=[100*e[z] for e in errors if e[z] is not None],
                                 visible=True
                             )
                         ))
