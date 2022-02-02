@@ -7,7 +7,7 @@ import json
 import plotly.graph_objects as go
 import os
 import plotly.io as pio
-pio.kaleido.scope.mathjax = None
+#pio.kaleido.scope.mathjax = None
 
 def load():
 
@@ -70,10 +70,13 @@ def load():
 
     #    for z in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
     for z in [0, 1]:
+        print(f"===========================================================")
+        print(f"{util.get_unit(z)}: {x_values}:")
         fig = go.Figure()
         for city in city_results:
             results = [m.get_metrics() for m in city_results[city]]
             errors = [m.get_cdf() for m in city_results[city]]
+            print(f"{city}: {[100*r[z] for r in results if r[z] is not None]}")
             fig.add_trace(go.Scatter(
                 x=x_values,
                 y=[100*r[z] for r in results if r[z] is not None],
@@ -93,12 +96,15 @@ def load():
                               legend=dict(yanchor="bottom", y=0.05, xanchor="left", x=0.05))
         fig.update_layout(xaxis_title_font_size=20, yaxis_title_font_size=20)
 
-        fig.show()
+#        fig.show()
         if not os.path.exists("images"):
             os.mkdir("images")
         nt = 'satisfaction' if z == 1 else 'isolated'
-        fig.write_image(f'images/disaster_{nt}.pdf')
+#        fig.write_image(f'images/disaster_{nt}.pdf')
 #        fig.write_image(f'images/disaster_power_{nt}.pdf')
+        fig.write_image(f'images/disaster_{nt}.png')
+#        fig.write_image(f'images/disaster_power_{nt}.png')
+
 
 
 def create_plot_mmwave_comp():
@@ -163,8 +169,9 @@ def create_plot_mmwave_comp():
     # plot the stuff
     x_values, unit = util.get_x_values()
 
-
     for z in [0, 1]:
+        print(f"===========================================================")
+        print(f"{util.get_unit(z)}: {x_values}:")
 #        fig = go.Figure()  # when all cities in one fig
         for city in all_cities:
             fig = go.Figure()  # when one city per fig
@@ -174,6 +181,7 @@ def create_plot_mmwave_comp():
                     if c.name == city:
                         metrics = [m.get_metrics() for m in city_results[c]]
                         errors = [m.get_cdf() for m in city_results[c]]
+                        print(f"{city},{r}%: {[100*m[z] for m in metrics if m[z] is not None]}")
                         fig.add_trace(go.Scatter(
                             x=x_values,
                             y=[100*m[z] for m in metrics if m[z] is not None],
@@ -196,13 +204,14 @@ def create_plot_mmwave_comp():
             if not os.path.exists("images"):
                 os.mkdir("images")
             nt = 'satisfaction' if z == 1 else 'isolated'
-            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
+#            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
 #            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
-
+            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.png')
+#            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.png')
             fig.update_layout(title=city)
-            fig.show()  # when one city per fig
+#            fig.show()  # when one city per fig
 #        fig.show()  # when all cities in one fig
 
 if __name__ == '__main__':
-    create_plot_mmwave_comp()
     load()
+    create_plot_mmwave_comp()
