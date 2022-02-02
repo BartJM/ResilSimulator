@@ -11,8 +11,8 @@ import plotly.io as pio
 
 def load():
 
-    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
-#    file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
+#    file = os.path.join(settings.ROOT_DIR, "results", "disaster.csv")
+    file = os.path.join(settings.ROOT_DIR, "results", "disaster_power.csv")
 
     # Get all city names
     all_cities = []
@@ -101,16 +101,15 @@ def load():
             os.mkdir("images")
         nt = 'satisfaction' if z == 1 else 'isolated'
 #        fig.write_image(f'images/disaster_{nt}.pdf')
-#        fig.write_image(f'images/disaster_power_{nt}.pdf')
-        fig.write_image(f'images/disaster_{nt}.png')
-#        fig.write_image(f'images/disaster_power_{nt}.png')
+        fig.write_image(f'images/disaster_power_{nt}.pdf')
+#        fig.write_image(f'images/disaster_{nt}.png')
+        fig.write_image(f'images/disaster_power_{nt}.png')
 
 
 
 def create_plot_mmwave_comp():
-#    files = [('disaster.csv',0),('disaster_mmwave_25.csv',25),('disaster_mmwave_50.csv',50),('disaster_mmwave_75.csv',75),('disaster_mmwave_100.csv',100)]
-    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
-#    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
+#    files = [('disaster.csv', 0), ('disaster_mmwave_50.csv', 50), ('disaster_mmwave_100.csv',100)]
+    files = [('disaster_power.csv', 0), ('disaster_power_mmwave_50.csv', 50), ('disaster_power_mmwave_100.csv', 100)]
 
 # Get all city names
     all_cities = []
@@ -205,9 +204,9 @@ def create_plot_mmwave_comp():
                 os.mkdir("images")
             nt = 'satisfaction' if z == 1 else 'isolated'
 #            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.pdf')
-#            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
-            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.png')
-#            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.png')
+            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.pdf')
+#            fig.write_image(f'images/disaster_mmwave_{city}_{nt}.png')
+            fig.write_image(f'images/disaster_power_mmwave_{city}_{nt}.png')
             fig.update_layout(title=city)
 #            fig.show()  # when one city per fig
 #        fig.show()  # when all cities in one fig

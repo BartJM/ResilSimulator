@@ -206,7 +206,7 @@ def get_unit(index):
     if index == 0:
         return "Isolated Users (%)"
     elif index == 1:
-        return "Satisfaciton level (%)"
+        return "Satisfaction level (%)"
     elif index == 2:
         return "50% Satisfaction level (%)"
     elif index == 3:
